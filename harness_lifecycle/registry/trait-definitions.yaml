@@ -11055,3 +11055,179 @@ provenance-worktree-cleanup:
   placement: {domain: engineering, stage: Delivery, substage: Integration}
   distinct_from: [approved-worktree-prune, worktree-cleanup]
   note: "approved-worktree-prune removes only worktrees the owner approves by path and never prunes globally; worktree-cleanup removes every implementer worktree at a build's end; this decides by the worktree's location."
+# ---- humanlayer_skills design-control-loop (bead cr-p3em.6; first analysis at 3c26291) ----
+control-loop-vocabulary:
+  definition: "Describe a recurring improvement loop in control terms (set point, sensor, controller, actuator, disturbance, a person on the loop) and explain them to the person before designing it."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+repo-survey-before-interview:
+  definition: "Before asking the person design questions, read the repository's build files, validation commands, CI, existing automation and analysis tools, so each question comes with proposals grounded in what is there."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+  distinct_from: [ground-in-codebase]
+  note: "ground-in-codebase explores the code before writing an artifact; this reads the repository's tooling before an interview so its questions carry grounded proposals."
+component-design-interview:
+  definition: "Design each part of an automation with the person one at a time, offering the options the repository supports with their trade-offs, recommending one and recording the answer, never mandating a choice."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+set-point-and-scope:
+  definition: "Fix a loop's target as an invariant, a threshold or a direction, and pin the paths it may change and those it may only read."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+sensor-tradeoff-choice:
+  definition: "Choose a loop's measurement from tooling the repository already has, weighing its stability, cost, repeatability and whether it can be switched off unnoticed."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+reviewable-increment-controller:
+  definition: "Have a loop's controller choose the next increment from the measurement, ordered and capped so each run's change stays small enough to review."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+tune-controller-from-output:
+  definition: "Start a loop's selection simple and revise it from the loop's output and the reviewer's corrections."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+fused-loop-parts:
+  definition: "Let a loop's parts merge where one tool or agent does two jobs, building no separation the design does not have."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+headless-agent-choice:
+  definition: "Pick the coding agent an automation runs, with its stored credential and its non-interactive command."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+golden-patterns-first:
+  definition: "Before automating a change, find in the code what a good instance of it looks like, confirm with the person which patterns to follow, and write them into the automation's instructions."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+agreed-validation-commands:
+  definition: "Agree with the person, from what the repository already runs, the validation commands an automated change must pass before it is committed."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+loop-dampener-offer:
+  definition: "Offer, as optional, a check that compares a loop's measurement on other changes with a baseline, so the measured problem cannot grow while the loop shrinks it."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [ratchet-on-common-patterns]
+  note: "ratchet-on-common-patterns fails a change that adds more of a widespread pattern; this offers, as an optional part of a loop, a check against the loop's own measurement, which may start advisory."
+written-design-before-build:
+  definition: "Write the agreed design of an automation down before building it, so the person can correct it cheaply."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+repo-local-actuator-skill:
+  definition: "Capture an automated change's judgement as a discoverable repository-local skill with ordered steps, completion criteria and its templates in references."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+one-home-per-loop-rule:
+  definition: "Keep each rule of a loop in exactly one of its files (the agent's instructions, the steering file, the selection code or the run script), never repeated across them."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+pr-body-response-template:
+  definition: "Give an automated change's agent a fixed form for its report that becomes the pull request body: what changed and how much, the risk, and how a reviewer can check a riskier change by hand."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+fix-ignore-skip-outcomes:
+  definition: "Give each automated target three outcomes: fix it, add it to the tool's ignore configuration with a reason, or skip it for a person."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+local-first-components:
+  definition: "Make each part of a loop a version-controlled script and run each by hand, on its own and on real input, before any schedule exists."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+scheduled-ci-workflow:
+  definition: "Run a loop as a scheduled CI workflow with separate sensing, selection and agent steps that commits and opens a pull request from the agent's final message."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+cadence-by-risk:
+  definition: "Set a recurring job's cadence by its change's risk and the reviewer's capacity."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+assembled-actuator-prompt:
+  definition: "Build each run's agent prompt in a fixed order: the standing instructions, then the work selected for this run, then the steering file."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+no-questions-unattended:
+  definition: "Tell an agent in an unattended run that nobody answers, so it finishes within its rules or stops the target with a reason instead of asking."
+  placement: {domain: core, stage: X, substage: Coordination}
+steering-file-after-controller:
+  definition: "Keep a version-controlled file of the person's standing guidance for a loop (exclusions, false positives, review lessons, never one-off instructions or logs) and give it to the loop's agent after the selection on every run."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+iterate-comment-channel:
+  definition: "Let an authorized reviewer's command comment on a loop's pull request start a run that revises that pull request and distils durable guidance into the loop's memory file."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+one-open-pr-bound:
+  definition: "Bound a loop at one open pull request, found by its branch or label, so a run that finds one open does no work."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+manual-run-bypasses-bound:
+  definition: "Let a run started by hand ignore a loop's open pull request bound."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+loop-config-validation:
+  definition: "Before a loop runs, check that its run definition parses and that every path it names exists."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+push-trigger-dry-run:
+  definition: "Prove a CI workflow by adding a temporary push trigger, watching one run and removing the trigger again."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+scale-up-once-tuned:
+  definition: "Raise a tuned loop's throughput (a more frequent cadence, a larger increment, more cycles per run) once its output is consistent."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+parallel-loop-prs:
+  definition: "Run a loop several times at once so that each teammate reviews a separate pull request from it."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+broad-permission-runner:
+  definition: "Run an unattended agent in a permission mode or sandbox that skips its permission checks, relying on an isolated runner instead."
+  placement: {domain: core, stage: X, substage: Governance}
+agent-spend-guard:
+  definition: "Cap an unattended agent's turns, and its spend where the agent offers a cap, on every run."
+  placement: {domain: core, stage: X, substage: Governance}
+final-message-extraction:
+  definition: "Take an unattended agent's final message from its output as text for the pull request body, failing over when it is missing."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+no-change-no-pr:
+  definition: "Open no pull request from a run whose agent produced no change."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+loop-scope-gate:
+  definition: "Keep a loop to the paths it may safely change, leaving out generated, vendored or risky code, and refuse a run whose change reaches outside its target."
+  placement: {domain: core, stage: X, substage: Governance}
+cancel-overlapping-runs:
+  definition: "When a new run of a recurring job starts, cancel the run still in progress."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+stage-all-on-iterate:
+  definition: "Stage every working-tree change with a whole-tree add before committing an automated revision."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+agent-commits-and-pushes:
+  definition: "Have the automated agent itself validate, commit and push its change."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+illustrative-worked-example:
+  definition: "Ship one fully worked example of the artifact a skill builds, marked as showing its shape and not as a template for its specifics."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+agent-output-kept:
+  definition: "Keep an unattended agent's raw output with its run, so a failed run can be read afterwards."
+  placement: {domain: core, stage: X, substage: Continuity}
+# ---- ours, control-loop (bead cr-p3em.6; owner answers of 2026-11-24, decision cr-cood's loop exception) ----
+loop-charter-bead:
+  definition: "Track a loop as one feature bead that stays open while the loop lives, its description the charter and its notes one line per target done, skipped, failed or reopened."
+  placement: {domain: core, stage: X, substage: Continuity}
+run-task-bead-per-pr:
+  definition: "Give each acting run of a loop a child task bead and one pull request that names it and references the loop's issue without closing it."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+noted-target-exclusion:
+  definition: "Have a loop's controller pass over a target its notes mark done or skipped, or failed twice, until a later reopened note."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+set-point-reached-stop:
+  definition: "End a loop's run with a note, changing nothing, when its measurement shows the target reached, its pinned configuration changed, or every remaining target excluded."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+gated-script-commit:
+  definition: "Let a loop's run script, not its agent, stage the target's paths by name, run the commit gate and its manual checks, then commit, push the run's new branch and open the pull request."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+loop-run-grant:
+  definition: "Read the owner's go on a loop as authority, per run, for the run's task bead and notes, a branch from the base, one gated commit, an ordinary push of that branch and its pull request, and for nothing else: no force-push, no merge, every other network write held."
+  placement: {domain: core, stage: X, substage: Governance}
+  distinct_from: [autopilot-delivery-grant]
+  note: "autopilot-delivery-grant covers building named settled beads to merge-ready pull requests, reviews and thread replies included; this covers one loop run's single gated change and its pull request."
+allowlisted-headless-actuator:
+  definition: "Run a loop's agent non-interactively on the owner's own login with an explicit tool allowlist (read and search tools, edits to the target's paths, named commands), in the permission mode that denies everything else, never one that bypasses its checks, with no settings file or hook loaded."
+  placement: {domain: core, stage: X, substage: Governance}
+  distinct_from: [headless-agent-choice]
+  note: "headless-agent-choice picks the agent, its stored credential and its command; this runs the agent on the owner's login and fixes its permissions to an allowlist."
+loop-actuator-instructions:
+  definition: "Write a loop agent's judgement (golden pattern, permitted commands, outcomes, body form) as one plain instructions file in the loop's folder that the run puts first in the prompt."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+  distinct_from: [repo-local-actuator-skill]
+  note: "repo-local-actuator-skill installs a discoverable skill; this keeps the instructions a file of the loop, so ordinary sessions never route to them."
+fix-or-skip-outcome:
+  definition: "Give each loop target two outcomes, fixed or skipped with a reason for the person, never cleared by silencing the measuring tool."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+  distinct_from: [fix-ignore-skip-outcomes]
+  note: "fix-ignore-skip-outcomes also lets the agent add the target to the tool's ignore configuration; here that loosens a gate and is the owner's call."
+local-timer-on-request:
+  definition: "Schedule a loop only when the person asks, as a user timer or cron entry on their own machine at their cadence, leaving a CI runner as a later option."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+  distinct_from: [scheduled-ci-workflow]
+  note: "scheduled-ci-workflow runs the loop in CI with a stored credential; this runs it locally and writes the schedule only on request."
+one-real-dry-run:
+  definition: "Prove a loop before any schedule with one supervised run on real output that opens one real pull request for the person to review."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [push-trigger-dry-run]
+  note: "push-trigger-dry-run proves a CI workflow through a temporary trigger; this proves the loop with one run by hand before any schedule exists."
+overlapping-run-skips:
+  definition: "Hold a lock for each run of a recurring job, so a run started while another holds it exits at once, changing nothing."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+  distinct_from: [cancel-overlapping-runs]
+  note: "cancel-overlapping-runs stops the run in progress; this lets it finish and makes the newcomer exit."

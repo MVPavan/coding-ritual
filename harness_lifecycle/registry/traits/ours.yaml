@@ -117,7 +117,7 @@ ours:model-council:
   tree_hash: "924c702a75b471cbfa3a3aed97e1860adb5a41740233bb0c192b705b9bd49876"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick, sketch-by-parallel-runners]
 ours:mvp-mode:
-  tree_hash: "09de0ed5246f7031c9e084924353b79cefb5346adbc3c8b287d5d08f1646420d"
+  tree_hash: "ef2611563a958197d9a9ac82b6a6de27aaa015f08458288094a3967300147c12"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -296,6 +296,12 @@ doc:.repo-context/verification.md:
 ours:wake:
   tree_hash: "c75ab0ca50f5de35a9607e148c2c7090a3131b200e00c978278a862e9d083af8"
   traits: [run-card-limits, one-consuming-admit, one-closing-timer, timer-positive-evidence, timer-identity-check, timer-close-cancels, woken-run-limits]
+ours:control-loop:
+  tree_hash: "f56b0bc54f413b14242860e67b0df578a7e1d45658e86a7fb1f00e0fd66492d7"
+  traits: [control-loop-vocabulary, fused-loop-parts, loop-charter-bead, run-task-bead-per-pr, noted-target-exclusion, one-open-pr-bound, allowlisted-headless-actuator, agent-spend-guard, gated-script-commit, loop-scope-gate, loop-run-grant, gate-loosening-held, local-first-components, repo-survey-before-interview, component-design-interview, set-point-and-scope, sensor-tradeoff-choice, reviewable-increment-controller, golden-patterns-first, agreed-validation-commands, loop-dampener-offer, cadence-by-risk, written-design-before-build, one-home-per-loop-rule, loop-actuator-instructions, no-questions-unattended, fix-or-skip-outcome, pr-body-response-template, steering-file-after-controller, assembled-actuator-prompt, loop-config-validation, overlapping-run-skips, set-point-reached-stop, final-message-extraction, no-change-no-pr, agent-output-kept, one-real-dry-run, local-timer-on-request, tune-controller-from-output, scale-up-once-tuned, completion-criteria-clarity]
+  notes:
+    gate-loosening-held: "Narrowed to the loop's own gate: clearing a target by silencing the sensor's tool (an ignore entry, a suppression comment, a changed tool configuration) is a loosening; the actuator skips the target and the owner decides (SKILL.md, The grant)."
+    completion-criteria-clarity: "Each step of Build a loop ends on a Done when line."
 ours:restate:
   tree_hash: "1df24631272f640a4d4ac1a5e6634a49d3a0994ff921e7d4ff48078827fc16f9"
   traits: [goal-and-problem-restatement]

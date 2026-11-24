@@ -1546,6 +1546,49 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `implementation-test-deletion`: When internals change, rewrite or delete tests that only protect the old implementation, asserting the current contract instead.
 - `green-on-break-test-fixed`: Repair or remove a test that stays green when its behaviour breaks.
 
+#### engineering · X · Coordination — control-loop
+- `control-loop-vocabulary`: Describe a recurring improvement loop in control terms (set point, sensor, controller, actuator, disturbance, a person on the loop) and explain them to the person before designing it.
+- `fused-loop-parts`: Let a loop's parts merge where one tool or agent does two jobs, building no separation the design does not have.
+- `loop-charter-bead`: Track a loop as one feature bead that stays open while the loop lives, its description the charter and its notes one line per target done, skipped, failed or reopened.
+- `run-task-bead-per-pr`: Give each acting run of a loop a child task bead and one pull request that names it and references the loop's issue without closing it.
+- `noted-target-exclusion`: Have a loop's controller pass over a target its notes mark done or skipped, or failed twice, until a later reopened note.
+- `one-open-pr-bound`: Bound a loop at one open pull request, found by its branch or label, so a run that finds one open does no work.
+- `allowlisted-headless-actuator`: Run a loop's agent non-interactively on the owner's own login with an explicit tool allowlist (read and search tools, edits to the target's paths, named commands), in the permission mode that denies everything else, never one that bypasses its checks, with no settings file or hook loaded.
+- `agent-spend-guard`: Cap an unattended agent's turns, and its spend where the agent offers a cap, on every run.
+- `gated-script-commit`: Let a loop's run script, not its agent, stage the target's paths by name, run the commit gate and its manual checks, then commit, push the run's new branch and open the pull request.
+- `loop-scope-gate`: Keep a loop to the paths it may safely change, leaving out generated, vendored or risky code, and refuse a run whose change reaches outside its target.
+- `loop-run-grant`: Read the owner's go on a loop as authority, per run, for the run's task bead and notes, a branch from the base, one gated commit, an ordinary push of that branch and its pull request, and for nothing else: no force-push, no merge, every other network write held.
+- `gate-loosening-held`: Hold for the owner any change that loosens a gate, such as a skipped or soft-failed test, a raised budget, an allowlist entry, or a check removed or weakened in the gate's own configuration.
+- `local-first-components`: Make each part of a loop a version-controlled script and run each by hand, on its own and on real input, before any schedule exists.
+- `repo-survey-before-interview`: Before asking the person design questions, read the repository's build files, validation commands, CI, existing automation and analysis tools, so each question comes with proposals grounded in what is there.
+- `component-design-interview`: Design each part of an automation with the person one at a time, offering the options the repository supports with their trade-offs, recommending one and recording the answer, never mandating a choice.
+- `set-point-and-scope`: Fix a loop's target as an invariant, a threshold or a direction, and pin the paths it may change and those it may only read.
+- `sensor-tradeoff-choice`: Choose a loop's measurement from tooling the repository already has, weighing its stability, cost, repeatability and whether it can be switched off unnoticed.
+- `reviewable-increment-controller`: Have a loop's controller choose the next increment from the measurement, ordered and capped so each run's change stays small enough to review.
+- `golden-patterns-first`: Before automating a change, find in the code what a good instance of it looks like, confirm with the person which patterns to follow, and write them into the automation's instructions.
+- `agreed-validation-commands`: Agree with the person, from what the repository already runs, the validation commands an automated change must pass before it is committed.
+- `loop-dampener-offer`: Offer, as optional, a check that compares a loop's measurement on other changes with a baseline, so the measured problem cannot grow while the loop shrinks it.
+- `cadence-by-risk`: Set a recurring job's cadence by its change's risk and the reviewer's capacity.
+- `written-design-before-build`: Write the agreed design of an automation down before building it, so the person can correct it cheaply.
+- `one-home-per-loop-rule`: Keep each rule of a loop in exactly one of its files (the agent's instructions, the steering file, the selection code or the run script), never repeated across them.
+- `loop-actuator-instructions`: Write a loop agent's judgement (golden pattern, permitted commands, outcomes, body form) as one plain instructions file in the loop's folder that the run puts first in the prompt.
+- `no-questions-unattended`: Tell an agent in an unattended run that nobody answers, so it finishes within its rules or stops the target with a reason instead of asking.
+- `fix-or-skip-outcome`: Give each loop target two outcomes, fixed or skipped with a reason for the person, never cleared by silencing the measuring tool.
+- `pr-body-response-template`: Give an automated change's agent a fixed form for its report that becomes the pull request body: what changed and how much, the risk, and how a reviewer can check a riskier change by hand.
+- `steering-file-after-controller`: Keep a version-controlled file of the person's standing guidance for a loop (exclusions, false positives, review lessons, never one-off instructions or logs) and give it to the loop's agent after the selection on every run.
+- `assembled-actuator-prompt`: Build each run's agent prompt in a fixed order: the standing instructions, then the work selected for this run, then the steering file.
+- `loop-config-validation`: Before a loop runs, check that its run definition parses and that every path it names exists.
+- `overlapping-run-skips`: Hold a lock for each run of a recurring job, so a run started while another holds it exits at once, changing nothing.
+- `set-point-reached-stop`: End a loop's run with a note, changing nothing, when its measurement shows the target reached, its pinned configuration changed, or every remaining target excluded.
+- `final-message-extraction`: Take an unattended agent's final message from its output as text for the pull request body, failing over when it is missing.
+- `no-change-no-pr`: Open no pull request from a run whose agent produced no change.
+- `agent-output-kept`: Keep an unattended agent's raw output with its run, so a failed run can be read afterwards.
+- `one-real-dry-run`: Prove a loop before any schedule with one supervised run on real output that opens one real pull request for the person to review.
+- `local-timer-on-request`: Schedule a loop only when the person asks, as a user timer or cron entry on their own machine at their cadence, leaving a CI runner as a later option.
+- `tune-controller-from-output`: Start a loop's selection simple and revise it from the loop's output and the reviewer's corrections.
+- `scale-up-once-tuned`: Raise a tuned loop's throughput (a more frequent cadence, a larger increment, more cycles per run) once its output is consistent.
+- `completion-criteria-clarity`: End each step on an observable, checkable done-or-not-done criterion that resists premature completion.
+
 ### Docs
 
 #### doc:.repo-context/coding-style.md
@@ -3706,6 +3749,51 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `secret-containment`: Keep secrets and private data out of any destination not authorized to hold them. — adopt → doc:AGENTS.md
 - `harmless-probe-before-live`: Before saying an integration is live, send it one request it is built to ignore and check for the success reply. — reject
 
+### humanlayer_skills
+
+#### engineering · X · Coordination — skill:plugins/design-control-loop/skills/design-control-loop
+- `control-loop-vocabulary`: Describe a recurring improvement loop in control terms (set point, sensor, controller, actuator, disturbance, a person on the loop) and explain them to the person before designing it. — adopt → control-loop#control-loop-vocabulary
+- `repo-survey-before-interview`: Before asking the person design questions, read the repository's build files, validation commands, CI, existing automation and analysis tools, so each question comes with proposals grounded in what is there. — adopt → control-loop#repo-survey-before-interview
+- `component-design-interview`: Design each part of an automation with the person one at a time, offering the options the repository supports with their trade-offs, recommending one and recording the answer, never mandating a choice. — adopt → control-loop#component-design-interview
+- `set-point-and-scope`: Fix a loop's target as an invariant, a threshold or a direction, and pin the paths it may change and those it may only read. — adopt → control-loop#set-point-and-scope
+- `sensor-tradeoff-choice`: Choose a loop's measurement from tooling the repository already has, weighing its stability, cost, repeatability and whether it can be switched off unnoticed. — adopt → control-loop#sensor-tradeoff-choice
+- `reviewable-increment-controller`: Have a loop's controller choose the next increment from the measurement, ordered and capped so each run's change stays small enough to review. — adopt → control-loop#reviewable-increment-controller
+- `tune-controller-from-output`: Start a loop's selection simple and revise it from the loop's output and the reviewer's corrections. — adopt → control-loop#tune-controller-from-output
+- `fused-loop-parts`: Let a loop's parts merge where one tool or agent does two jobs, building no separation the design does not have. — adopt → control-loop#fused-loop-parts
+- `headless-agent-choice`: Pick the coding agent an automation runs, with its stored credential and its non-interactive command. — adopt → control-loop#allowlisted-headless-actuator
+- `golden-patterns-first`: Before automating a change, find in the code what a good instance of it looks like, confirm with the person which patterns to follow, and write them into the automation's instructions. — adopt → control-loop#golden-patterns-first
+- `agreed-validation-commands`: Agree with the person, from what the repository already runs, the validation commands an automated change must pass before it is committed. — adopt → control-loop#agreed-validation-commands
+- `loop-dampener-offer`: Offer, as optional, a check that compares a loop's measurement on other changes with a baseline, so the measured problem cannot grow while the loop shrinks it. — adopt → control-loop#loop-dampener-offer
+- `written-design-before-build`: Write the agreed design of an automation down before building it, so the person can correct it cheaply. — adopt → control-loop#written-design-before-build
+- `repo-local-actuator-skill`: Capture an automated change's judgement as a discoverable repository-local skill with ordered steps, completion criteria and its templates in references. — adopt → control-loop#loop-actuator-instructions
+- `one-home-per-loop-rule`: Keep each rule of a loop in exactly one of its files (the agent's instructions, the steering file, the selection code or the run script), never repeated across them. — adopt → control-loop#one-home-per-loop-rule
+- `pr-body-response-template`: Give an automated change's agent a fixed form for its report that becomes the pull request body: what changed and how much, the risk, and how a reviewer can check a riskier change by hand. — adopt → control-loop#pr-body-response-template
+- `fix-ignore-skip-outcomes`: Give each automated target three outcomes: fix it, add it to the tool's ignore configuration with a reason, or skip it for a person. — adopt → control-loop#fix-or-skip-outcome
+- `local-first-components`: Make each part of a loop a version-controlled script and run each by hand, on its own and on real input, before any schedule exists. — adopt → control-loop#local-first-components
+- `scheduled-ci-workflow`: Run a loop as a scheduled CI workflow with separate sensing, selection and agent steps that commits and opens a pull request from the agent's final message. — adopt → control-loop#local-timer-on-request
+- `cadence-by-risk`: Set a recurring job's cadence by its change's risk and the reviewer's capacity. — adopt → control-loop#cadence-by-risk
+- `assembled-actuator-prompt`: Build each run's agent prompt in a fixed order: the standing instructions, then the work selected for this run, then the steering file. — adopt → control-loop#assembled-actuator-prompt
+- `no-questions-unattended`: Tell an agent in an unattended run that nobody answers, so it finishes within its rules or stops the target with a reason instead of asking. — adopt → control-loop#no-questions-unattended
+- `steering-file-after-controller`: Keep a version-controlled file of the person's standing guidance for a loop (exclusions, false positives, review lessons, never one-off instructions or logs) and give it to the loop's agent after the selection on every run. — adopt → control-loop#steering-file-after-controller
+- `iterate-comment-channel`: Let an authorized reviewer's command comment on a loop's pull request start a run that revises that pull request and distils durable guidance into the loop's memory file. — reject
+- `one-open-pr-bound`: Bound a loop at one open pull request, found by its branch or label, so a run that finds one open does no work. — adopt → control-loop#one-open-pr-bound
+- `manual-run-bypasses-bound`: Let a run started by hand ignore a loop's open pull request bound. — reject
+- `loop-config-validation`: Before a loop runs, check that its run definition parses and that every path it names exists. — adopt → control-loop#loop-config-validation
+- `push-trigger-dry-run`: Prove a CI workflow by adding a temporary push trigger, watching one run and removing the trigger again. — adopt → control-loop#one-real-dry-run
+- `scale-up-once-tuned`: Raise a tuned loop's throughput (a more frequent cadence, a larger increment, more cycles per run) once its output is consistent. — adopt → control-loop#scale-up-once-tuned
+- `parallel-loop-prs`: Run a loop several times at once so that each teammate reviews a separate pull request from it. — reject
+- `broad-permission-runner`: Run an unattended agent in a permission mode or sandbox that skips its permission checks, relying on an isolated runner instead. — reject
+- `agent-spend-guard`: Cap an unattended agent's turns, and its spend where the agent offers a cap, on every run. — adopt → control-loop#agent-spend-guard
+- `final-message-extraction`: Take an unattended agent's final message from its output as text for the pull request body, failing over when it is missing. — adopt → control-loop#final-message-extraction
+- `no-change-no-pr`: Open no pull request from a run whose agent produced no change. — adopt → control-loop#no-change-no-pr
+- `loop-scope-gate`: Keep a loop to the paths it may safely change, leaving out generated, vendored or risky code, and refuse a run whose change reaches outside its target. — adopt → control-loop#loop-scope-gate
+- `cancel-overlapping-runs`: When a new run of a recurring job starts, cancel the run still in progress. — adopt → control-loop#overlapping-run-skips
+- `stage-all-on-iterate`: Stage every working-tree change with a whole-tree add before committing an automated revision. — reject
+- `agent-commits-and-pushes`: Have the automated agent itself validate, commit and push its change. — reject
+- `illustrative-worked-example`: Ship one fully worked example of the artifact a skill builds, marked as showing its shape and not as a template for its specifics. — reject
+- `completion-criteria-clarity`: End each step on an observable, checkable done-or-not-done criterion that resists premature completion. — adopt → control-loop#completion-criteria-clarity
+- `agent-output-kept`: Keep an unattended agent's raw output with its run, so a failed run can be read afterwards. — adopt → control-loop#agent-output-kept
+
 ### mattpocock_skills
 
 #### core · Discovery · Charting — skill:skills/engineering/wayfinder
@@ -4977,6 +5065,11 @@ Treat a person saying they are stepping away as a signal to stop asking question
 #### `cast-migration-intake`
 Before migrating, ask which test files hold problem casts, whether large objects with few relevant fields are involved and whether invalid data is needed.
 - `mattpocock_skills:skill:skills/misc/migrate-to-shoehorn` — reject
+
+#### `component-design-interview`
+Design each part of an automation with the person one at a time, offering the options the repository supports with their trade-offs, recommending one and recording the answer, never mandating a choice.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#component-design-interview
 
 #### `decision-frame`
 Establish the outcome, intended user, success criteria, constraints and exclusions before committing to an approach.
@@ -6463,6 +6556,8 @@ Keep a manual or legacy entrypoint as a thin pointer that delegates to the canon
 #### `completion-criteria-clarity`
 End each step on an observable, checkable done-or-not-done criterion that resists premature completion.
 - ours: `authoring-for-agents`
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#completion-criteria-clarity
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#completion-criteria-clarity
 
 #### `completion-criteria-demand`
@@ -6599,6 +6694,10 @@ Require a person's approval for each exception to a check.
 Write a user-invoked skill's description as a one-line human summary with triggers stripped.
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
 
+#### `illustrative-worked-example`
+Ship one fully worked example of the artifact a skill builds, marked as showing its shape and not as a template for its specifics.
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — reject
+
 #### `incremental-persona-update`
 In update mode, mine only history since the skill's last commit, ask what changed, and edit the file in place keeping sections nothing contradicts.
 - `cursor_plugins:skill:pstack/skills/automate-me` — defer
@@ -6702,6 +6801,11 @@ Offer to move a file found under a legacy name to its current name and update th
 Prefer one effective instruction over repeated prohibitions or ritual steps, treating wording techniques as hypotheses rather than laws.
 - ours: `authoring-for-agents`
 
+#### `one-home-per-loop-rule`
+Keep each rule of a loop in exactly one of its files (the agent's instructions, the steering file, the selection code or the run script), never repeated across them.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#one-home-per-loop-rule
+
 #### `one-ratchet-change-a-day`
 Limit a migration ratchet to one small pull request a day so human review stays cheap.
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
@@ -6785,6 +6889,10 @@ Refer to other skills and principle files by path instead of pasting excerpts.
 Check every line still bears on the document's task, pruning stale or irrelevant ones.
 - ours: `authoring-for-agents`
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#relevance-check
+
+#### `repo-local-actuator-skill`
+Capture an automated change's judgement as a discoverable repository-local skill with ordered steps, completion criteria and its templates in references.
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#loop-actuator-instructions
 
 #### `retire-stub-one-release`
 Retire a skill by leaving a stub for one plugin release, then removing its folder.
@@ -8596,6 +8704,11 @@ Leave out a neighbouring feature or ticket unless it blocks this one.
 - ours: `recall`
 - `cursor_plugins:skill:pstack/skills/recall` — adopt → recall#adjacent-excluded-unless-blocking
 
+#### `agent-output-kept`
+Keep an unattended agent's raw output with its run, so a failed run can be read afterwards.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#agent-output-kept
+
 #### `agreed-wiki-location`
 Agree the wiki's location with the user before the first write.
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
@@ -8884,6 +8997,10 @@ Hold an exclusive lock across reading and appending, so simultaneous first write
 #### `logs-behind-references`
 Keep large logs and histories behind references instead of loading them into context.
 - `doc:AGENTS.md`
+
+#### `loop-charter-bead`
+Track a loop as one feature bead that stays open while the loop lives, its description the charter and its notes one line per target done, skipped, failed or reopened.
+- ours: `control-loop`
 
 #### `loop-done-as-checks`
 Give an unattended loop a done condition written as checks each iteration can run, never a length of time.
@@ -9860,6 +9977,11 @@ Inside a delegated task, route only to skills and principles and never start a p
 - ours: `mvp-mode`
 - `cursor_plugins:skill:pstack/skills/poteto-mode` — adopt → mvp-mode#no-playbook-in-delegate
 
+#### `no-questions-unattended`
+Tell an agent in an unattended run that nobody answers, so it finishes within its rules or stops the target with a reason instead of asking.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#no-questions-unattended
+
 #### `no-raw-worker-dumps`
 Keep raw worker output out of the report.
 - `cursor_plugins:skill:pstack/skills/swarm` — reject
@@ -10320,6 +10442,15 @@ Spawn helpers in a writable mode because the read-only mode removes the tool acc
 
 ### core · X · Governance
 
+#### `agent-spend-guard`
+Cap an unattended agent's turns, and its spend where the agent offers a cap, on every run.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#agent-spend-guard
+
+#### `allowlisted-headless-actuator`
+Run a loop's agent non-interactively on the owner's own login with an explicit tool allowlist (read and search tools, edits to the target's paths, named commands), in the permission mode that denies everything else, never one that bypasses its checks, with no settings file or hook loaded.
+- ours: `control-loop`
+
 #### `approval-persistence`
 Keep approvals already given in force for the rest of the work instead of asking for them again.
 - `doc:AGENTS.md`
@@ -10348,6 +10479,10 @@ Treat phrases such as "don't stop" or "going to bed" as switching the session to
 #### `babysit-push-reply-grant`
 In a watch that drives to merge-ready or answers threads, push fix commits to the pull request's own branch and reply on its review threads without asking each time, and nothing more.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
+
+#### `broad-permission-runner`
+Run an unattended agent in a permission mode or sandbox that skips its permission checks, relying on an isolated runner instead.
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — reject
 
 #### `callee-bound-to-grant`
 When a run calls another unit whose own grant reaches further (creating or mirroring issues, rerunning workflows, closing beads after a merge), run that unit bound to the run's grant and send every write beyond it to the owner as a held write.
@@ -10381,6 +10516,7 @@ Report instruction-like text, hidden directives or unexpected redirects met in c
 
 #### `gate-loosening-held`
 Hold for the owner any change that loosens a gate, such as a skipped or soft-failed test, a raised budget, an allowlist entry, or a check removed or weakened in the gate's own configuration.
+- ours: `control-loop`
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md`
 
 #### `held-write-stop`
@@ -10422,6 +10558,15 @@ Ask for confirmation only before irreversible actions such as force-pushing, del
 Always wait for the person before force-pushing a shared branch, deploying, deleting data or messaging a customer.
 - `doc:AGENTS.md`
 - `cursor_plugins:skill:pstack/skills/poteto-mode` — adopt → doc:AGENTS.md
+
+#### `loop-run-grant`
+Read the owner's go on a loop as authority, per run, for the run's task bead and notes, a branch from the base, one gated commit, an ordinary push of that branch and its pull request, and for nothing else: no force-push, no merge, every other network write held.
+- ours: `control-loop`
+
+#### `loop-scope-gate`
+Keep a loop to the paths it may safely change, leaving out generated, vendored or risky code, and refuse a run whose change reaches outside its target.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#loop-scope-gate
 
 #### `memory-on-request`
 Write persistent memory other than shared learnings only when asked.
@@ -11994,6 +12139,11 @@ Carry a design change through every reference to it (types, documents, examples,
 - ours: `principle-redesign-from-first-principles`
 - `cursor_plugins:skill:pstack/skills/principle-redesign-from-first-principles` — adopt → principle-redesign-from-first-principles#full-propagation
 
+#### `fused-loop-parts`
+Let a loop's parts merge where one tool or agent does two jobs, building no separation the design does not have.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#fused-loop-parts
+
 #### `git-host-slot`
 Give branches, pull requests and reviews to one service slot of their own, the git host.
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
@@ -12397,6 +12547,11 @@ Prefer specific per-operation interface functions over one generic fetcher so ea
 #### `self-contained-html-demo`
 Offer an interactive demo as one self-contained HTML file that works offline.
 - ours: `prototype`
+
+#### `sensor-tradeoff-choice`
+Choose a loop's measurement from tooling the repository already has, weighing its stability, cost, repeatability and whether it can be switched off unnoticed.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#sensor-tradeoff-choice
 
 #### `separate-promotion`
 Treat promoting a prototype's decision or code into production as separate work with its own scope and checks.
@@ -12952,6 +13107,11 @@ Read the domain glossary and the decision records near the code before exploring
 Lay out domain docs as one root glossary and decision folder unless the repository shows several contexts, then use a root map with per-context glossaries after confirming.
 - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 
+#### `repo-survey-before-interview`
+Before asking the person design questions, read the repository's build files, validation commands, CI, existing automation and analysis tools, so each question comes with proposals grounded in what is there.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#repo-survey-before-interview
+
 #### `sharpen-fuzzy`
 Propose one precise canonical term for a vague or overloaded one.
 - ours: `domain-modeling`
@@ -13012,6 +13172,11 @@ Write a long, exhaustive numbered list of actor-feature-benefit user stories.
 When implementation convenience conflicts with the consumer's experience, choose the experience.
 - ours: `principle-experience-first`
 - `cursor_plugins:skill:pstack/skills/principle-experience-first` — adopt → principle-experience-first#experience-over-convenience
+
+#### `golden-patterns-first`
+Before automating a change, find in the code what a good instance of it looks like, confirm with the person which patterns to follow, and write them into the automation's instructions.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#golden-patterns-first
 
 #### `implementation-decisions-scope`
 List a spec's implementation decisions across modules, interfaces, clarifications, architecture, schema, contracts and interactions.
@@ -13098,6 +13263,11 @@ Choose the test boundary that exercises the real contract without reaching insid
 - ours: `tdd`
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → tdd#seam-selection
 
+#### `set-point-and-scope`
+Fix a loop's target as an invariant, a threshold or a direction, and pin the paths it may change and those it may only read.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#set-point-and-scope
+
 #### `start-from-source`
 Begin each target from its complete source and preserve exact identifiers, numbers, error behaviour and invariants unless explicitly superseded.
 - ours: `design-evolve`
@@ -13120,6 +13290,11 @@ Write a spec's problem and solution from the user's perspective.
 #### `version-rekey`
 Update version headers, filenames and internal references and copy untouched core files so the target stands alone with prior versions only in provenance.
 - ours: `design-evolve`
+
+#### `written-design-before-build`
+Write the agreed design of an automation down before building it, so the person can correct it cheaply.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#written-design-before-build
 
 ### engineering · Building · Diagnosis
 
@@ -14915,6 +15090,11 @@ Capture both the action taken and the state that resulted, not only the final sc
 Prove a fix with two runs on the unfixed build that show the fault and two on the fixed build that do not, in one environment, making no claim when the unfixed build never shows it.
 - `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — reject
 
+#### `agreed-validation-commands`
+Agree with the person, from what the repository already runs, the validation commands an automated change must pass before it is committed.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#agreed-validation-commands
+
 #### `always-cleanup-keeping-user-work`
 Make a run's cleanup stop the processes and sessions its driver created, remove its disposable profiles, temporary workspaces and the fixtures it created and any captures past their retention window, keeping captures still within it, report what was stopped, removed, kept or left, and never delete the person's own work.
 - ours: `create-verification-skill`
@@ -15411,6 +15591,16 @@ When the product uses a live service, run every command of a generated skill fro
 - ours: `create-verification-skill`
 - ours: `maintain-verification-skill`
 
+#### `loop-config-validation`
+Before a loop runs, check that its run definition parses and that every path it names exists.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#loop-config-validation
+
+#### `loop-dampener-offer`
+Offer, as optional, a check that compares a loop's measurement on other changes with a baseline, so the measured problem cannot grow while the loop shrinks it.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#loop-dampener-offer
+
 #### `map-defines-completeness`
 Treat the feature map as the source of what must be proven, so proof through one entry point falls short while the map lists more, and a skipped one is never claimed through another route.
 - ours: `create-verification-skill`
@@ -15542,6 +15732,10 @@ End each pass with exactly one outcome, clean, changes or blocked, a blocked pas
 Ship a pass's changes as one pull request holding only proven fixes to docs, harness or map.
 - `cursor_plugins:skill:pstack/skills/maintain-verification-skill` — adopt → maintain-verification-skill#one-change-of-proven-fixes
 
+#### `one-real-dry-run`
+Prove a loop before any schedule with one supervised run on real output that opens one real pull request for the person to review.
+- ours: `control-loop`
+
 #### `optional-regression-test-skip`
 Skip only an optional regression test whose cost outweighs its risk, keeping required proof and project gates and reporting any proof that could not be obtained.
 - ours: `tdd`
@@ -15594,6 +15788,10 @@ Exercise behaviour in tests through public interfaces.
 - ours: `principle-test-behavior-not-implementation`
 - `doc:.repo-context/coding-style.md`
 - `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation` — adopt → principle-test-behavior-not-implementation#public-interface-testing
+
+#### `push-trigger-dry-run`
+Prove a CI workflow by adding a temporary push trigger, watching one run and removing the trigger again.
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#one-real-dry-run
 
 #### `read-index-first`
 Have the map send its reader to the index first and then to the feature file that matches, used as the recipe.
@@ -16613,6 +16811,10 @@ Refuse a view with unknown or mistyped exports, colours outside the fixed palett
 Treat an audit's cleanup bucket as advice that the owner's list of pinned work overrides.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
 
+#### `agent-commits-and-pushes`
+Have the automated agent itself validate, commit and push its change.
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — reject
+
 #### `approved-worktree-prune`
 Remove only the approved worktrees and records, each by its exact path and never by a global prune, keeping their branch refs and forcing only if the owner approves it after Git refuses.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
@@ -16755,6 +16957,11 @@ Stage only the resolved files from the captured conflict set by explicit path.
 When a post can fail, append the same record to a local log that the receiver drains, rather than relying on polling.
 - `cursor_plugins:skill:pstack/skills/make-bot-ui` — reject
 
+#### `final-message-extraction`
+Take an unattended agent's final message from its output as text for the pull request body, failing over when it is missing.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#final-message-extraction
+
 #### `fixed-integration-menu`
 When a branch is finished, offer the person exactly a fixed set of integration options (merge locally, push and open a pull request, keep as is; no merge on a detached HEAD) and wait for their choice.
 - `superpowers:skill:skills/finishing-a-development-branch` — reject
@@ -16770,6 +16977,10 @@ Give each feature its own branch made from freshly fetched trunk in a worktree o
 #### `gate-file-first`
 Stop at a project's first commit when it has no commit-gate file, draft one from its verification guide with every scriptable check as a command, and resume only on the owner's approval.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md`
+
+#### `gated-script-commit`
+Let a loop's run script, not its agent, stage the target's paths by name, run the commit gate and its manual checks, then commit, push the run's new branch and open the pull request.
+- ours: `control-loop`
 
 #### `hands-off-while-landing`
 While a verified run lands, change no branch or base beyond the landing's own moves, and find out why a merge stalls before changing anything.
@@ -16831,6 +17042,11 @@ Verify the merged result after merging.
 Make no force-push in an unattended run, its own branches included: bring trunk in by merging it into the branch, rebase only before the branch's first push, and hold any rewrite of pushed history for the owner.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md`
 
+#### `no-change-no-pr`
+Open no pull request from a run whose agent produced no change.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#no-change-no-pr
+
 #### `omit-missing-check-and-tell`
 Leave out a check the project has no command for and tell the person, never inventing one.
 - `mattpocock_skills:skill:skills/misc/setup-pre-commit` — reject
@@ -16854,6 +17070,11 @@ After a parent lands, move only the child's own commits onto trunk from the reco
 #### `pinned-set-cross-check`
 Cross-check every cleanup candidate against the owner's list of pinned or in-use worktrees, holding a recently active one to ask.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
+
+#### `pr-body-response-template`
+Give an automated change's agent a fixed form for its report that becomes the pull request body: what changed and how much, the risk, and how a reviewer can check a riskier change by hand.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#pr-body-response-template
 
 #### `pr-body-template`
 Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections.
@@ -16928,6 +17149,10 @@ Before merging a change judged hard to reverse, require a rollback plan naming w
 Discover and run the project's automated checks and fix what the merge broke.
 - ours: `resolving-merge-conflicts`
 
+#### `run-task-bead-per-pr`
+Give each acting run of a loop a child task bead and one pull request that names it and references the loop's issue without closing it.
+- ours: `control-loop`
+
 #### `scaffold-commit`
 Commit the scaffolded result once it is done.
 - `mattpocock_skills:skill:skills/misc/scaffold-exercises` — reject
@@ -16963,6 +17188,10 @@ Before any landing write, record the stack from the bottom up with each pull req
 #### `stack-topology-frozen`
 While watching pull requests, never retarget a base, rebase or force-push, and report a conflict, a stale base or a fix whose owner merged, with the branch that needs it.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
+
+#### `stage-all-on-iterate`
+Stage every working-tree change with a whole-tree add before committing an automated revision.
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — reject
 
 #### `staged-only-formatting`
 Format only the staged files at commit time, skipping file types the formatter cannot read.
@@ -17427,6 +17656,11 @@ Acknowledge an incoming webhook at once and start the run afterwards.
 Make writes that must start the next run under an identity whose writes emit that event, wherever the host's default run identity suppresses it for some event kinds.
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
+#### `assembled-actuator-prompt`
+Build each run's agent prompt in a fixed order: the standing instructions, then the work selected for this run, then the steering file.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#assembled-actuator-prompt
+
 #### `batched-webhook-workaround`
 Trigger on property changes, or choose another tracker type, when batched webhooks would delay runs.
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
@@ -17434,6 +17668,15 @@ Trigger on property changes, or choose another tracker type, when batched webhoo
 #### `cache-only-persistence`
 Let anything kept on a runner between runs be only a cache the next run can do without.
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `cadence-by-risk`
+Set a recurring job's cadence by its change's risk and the reviewer's capacity.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#cadence-by-risk
+
+#### `cancel-overlapping-runs`
+When a new run of a recurring job starts, cancel the run still in progress.
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#overlapping-run-skips
 
 #### `capped-run-loops`
 Stop any loop of runs after a few tries and hand it to a person, labelled as waiting for one.
@@ -17446,6 +17689,11 @@ Run independent graphs as admitted child workflows where collection is evidence 
 #### `close-gate`
 Close a phase only when it has at least one stage, every stage is closed, and its roadmap exit criterion has run with evidence recorded.
 - ours: `tracker`
+
+#### `control-loop-vocabulary`
+Describe a recurring improvement loop in control terms (set point, sensor, controller, actuator, disturbance, a person on the loop) and explain them to the person before designing it.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#control-loop-vocabulary
 
 #### `define-task-once`
 Define each kind of automated work once as a task that runs many times against a ticket, a pull request or the whole codebase.
@@ -17472,9 +17720,42 @@ Run each task on a machine that keeps nothing past the run, even when the machin
 File a failed run's log as a ticket and, when the failure is fixable, attempt a fix as a pull request sent to review.
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
+#### `fix-ignore-skip-outcomes`
+Give each automated target three outcomes: fix it, add it to the tool's ignore configuration with a reason, or skip it for a person.
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#fix-or-skip-outcome
+
+#### `fix-or-skip-outcome`
+Give each loop target two outcomes, fixed or skipped with a reason for the person, never cleared by silencing the measuring tool.
+- ours: `control-loop`
+
+#### `headless-agent-choice`
+Pick the coding agent an automation runs, with its stored credential and its non-interactive command.
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#allowlisted-headless-actuator
+
+#### `iterate-comment-channel`
+Let an authorized reviewer's command comment on a loop's pull request start a run that revises that pull request and distils durable guidance into the loop's memory file.
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — reject
+
 #### `late-context-on-pull-request`
 Put later context on the pull request when a native agent reads its ticket only at assignment.
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `local-first-components`
+Make each part of a loop a version-controlled script and run each by hand, on its own and on real input, before any schedule exists.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#local-first-components
+
+#### `local-timer-on-request`
+Schedule a loop only when the person asks, as a user timer or cron entry on their own machine at their cadence, leaving a CI runner as a later option.
+- ours: `control-loop`
+
+#### `loop-actuator-instructions`
+Write a loop agent's judgement (golden pattern, permitted commands, outcomes, body form) as one plain instructions file in the loop's folder that the run puts first in the prompt.
+- ours: `control-loop`
+
+#### `manual-run-bypasses-bound`
+Let a run started by hand ignore a loop's open pull request bound.
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — reject
 
 #### `memory-only-in-services`
 Let a run learn about earlier runs only from the tracker, the git host and the orchestrator.
@@ -17489,6 +17770,15 @@ Give each ticket, and the closing round of review fixes, a newly started impleme
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md`
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 - `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#no-reused-implementer
+
+#### `noted-target-exclusion`
+Have a loop's controller pass over a target its notes mark done or skipped, or failed twice, until a later reopened note.
+- ours: `control-loop`
+
+#### `one-open-pr-bound`
+Bound a loop at one open pull request, found by its branch or label, so a run that finds one open does no work.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#one-open-pr-bound
 
 #### `one-trigger-at-a-time`
 Add automated triggers one at a time rather than several together.
@@ -17506,10 +17796,18 @@ Have the orchestrator join git host and tracker events itself when they come fro
 Give one component the job of taking triggers, starting runs and recording each run as queued, in flight or finished.
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
+#### `overlapping-run-skips`
+Hold a lock for each run of a recurring job, so a run started while another holds it exits at once, changing nothing.
+- ours: `control-loop`
+
 #### `parallel-frontier-implementers`
 Run implementer subagents concurrently over the ready frontier of a ticket graph, dispatching new ones whenever a merge opens more tickets.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 - `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+
+#### `parallel-loop-prs`
+Run a loop several times at once so that each teammate reviews a separate pull request from it.
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — reject
 
 #### `per-ticket-concurrency-lock`
 Use a concurrency group keyed on the ticket so two runs never work the same ticket.
@@ -17553,6 +17851,11 @@ Answer, for each automated task, what starts it.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
 
+#### `reviewable-increment-controller`
+Have a loop's controller choose the next increment from the measurement, ordered and capped so each run's change stays small enough to review.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#reviewable-increment-controller
+
 #### `risk-sized-review`
 Size work small, standard or deep and match inline work, delegation and independent review to that size.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
@@ -17573,6 +17876,15 @@ Put a timeout on every run machine as a backstop, set from the orchestrator's de
 Choose the runner per task, so review and implementation runs may run on different kinds.
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
+#### `scale-up-once-tuned`
+Raise a tuned loop's throughput (a more frequent cadence, a larger increment, more cycles per run) once its output is consistent.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#scale-up-once-tuned
+
+#### `scheduled-ci-workflow`
+Run a loop as a scheduled CI workflow with separate sensing, selection and agent steps that commits and opens a pull request from the agent's final message.
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#local-timer-on-request
+
 #### `scope-selector`
 Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or settle-open-questions.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
@@ -17581,6 +17893,10 @@ Pick task, phase or workstream scope from the request and route unresolved mater
 Have the implementer pick the next ticket with no open dependency and restart itself until none remain.
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
+#### `set-point-reached-stop`
+End a loop's run with a note, changing nothing, when its measurement shows the target reached, its pinned configuration changed, or every remaining target excluded.
+- ours: `control-loop`
+
 #### `spec-tickets-implement-pipeline`
 Send large work through a spec, then tickets, then publishing both to the tracker, then implementing them.
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
@@ -17588,6 +17904,11 @@ Send large work through a spec, then tickets, then publishing both to the tracke
 #### `staged-delivery-flow`
 Order the work as interview, optional prototype, spec, tickets, implementation, review and retrospective.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
+
+#### `steering-file-after-controller`
+Keep a version-controlled file of the person's standing guidance for a loop (exclusions, false positives, review lessons, never one-off instructions or logs) and give it to the loop's agent after the selection on every run.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#steering-file-after-controller
 
 #### `stop-on-failure`
 Let a failed gate, exit criterion or material blocker stop advancement and diagnose instead of re-dispatching without new evidence.
@@ -17616,6 +17937,11 @@ Make the ticket tracker the one place where people schedule work, talk to agents
 #### `tracker-routing-by-type`
 Route runs by what the tracker type offers: labels on a git-host tracker, status moves on an agent-native one, invented properties in a general work tool, and file diffs after a push for repository tickets.
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `tune-controller-from-output`
+Start a loop's selection simple and revise it from the loop's output and the reviewer's corrections.
+- ours: `control-loop`
+- `humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop` — adopt → control-loop#tune-controller-from-output
 
 #### `workstream-mode`
 Run remaining phases in order only on explicit opt-in, with per-phase tracking refresh and commits only when the invocation covers them, stopping at the phase end when it does not.
@@ -17854,6 +18180,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `check-never-weakened-to-pass` | create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill, maintain-verification-skill, statechart | The app generator writes the rule into a generated skill, and the app maintenance pass applies it while fixing one: a failing journey is fixed only when source proves the map wrong (R3). statechart never loosens a rule, the model or its bounds so that a check passes, and create-formal-verification-skill never loosens the property, the model or the bounds (decision 3, restated per unit). maintain-formal-verification-skill never loosens a property, the model or its bounds so that a rerun passes (decision 3). |
 | `checker-install-approved-per-user` | create-formal-verification-skill, maintain-formal-verification-skill, statechart | statechart owns the per-user checker install and asks first; create-formal-verification-skill follows the same approval and recipe for TLC by pointer to statechart's references/install.md (decision 6, owner item 2). maintain-formal-verification-skill installs a missing checker only by the per-user recipe and pins the skill records, after the person approves, and otherwise blocks the check, naming what is missing (decision 6). |
 | `cold-agent-reader` | create-formal-verification-skill, create-verification-skill | create-verification-skill's references/generated-skill.md "Writing rules" state it, and create-formal-verification-skill applies those rules to the formal skill it writes, by pointer (decision 3, the one shared writing reference). |
+| `completion-criteria-clarity` | authoring-for-agents, control-loop | authoring-for-agents asks every written step to end on a checkable criterion; control-loop applies it to its own build steps, each ending on a Done when line, adopted with the loop design from its upstream unit (bead cr-p3em.6). |
 | `confidence-language-kept` | teach, unslop | Each rewrites a finished answer for a reader: unslop edits prose, teach rewords cited findings for teaching; both must keep the hedges and confidence words, which are results. The owner's batch P1 ruling put it into teach (sealed row 2026-11-06-batch-p1:019). |
 | `confirmed-cause-fix` | doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md, doc:.claude/skills/mvp-mode/playbooks/implement.md | Autopilot-full's build step is implement's Task loop, which fixes a failure only for a cause its diagnosis confirmed (bead cr-p3em.4). |
 | `counterexample-as-code-steps` | create-formal-verification-skill, maintain-formal-verification-skill | Both formal units tell a counterexample as a few numbered steps in the code's own terms: create-formal-verification-skill in its reply and in the generated skill's "Reading a failure", maintain-formal-verification-skill in each confirmed bug's report. |
@@ -17874,6 +18201,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `fixed-command-driven-as-written` | maintain-formal-verification-skill, maintain-verification-skill | Both maintenance units drive or run every documented command the pass corrected or added exactly as written before the change ships, whether or not the helper or runner changed: maintain-verification-skill for the commands of the feature files and skill it fixed, a case left marked not yet driven exempt; maintain-formal-verification-skill for every command its refresh of the formal skill changed or added (owner rulings of 2026-11-15, item 5; coordinator's ruling, round 2026-11-15-maintain-verification-two-rules Round 2). |
 | `formal-coverage-data-file` | create-formal-verification-skill, maintain-formal-verification-skill | create-formal-verification-skill keeps that record as coverage.json, one data file beside the formal verify skill's SKILL.md; maintain-formal-verification-skill reads and refreshes the file, and writes it for an older skill that lacks it, never as prose (decision 7). |
 | `full-pr-url` | doc:.claude/skills/mvp-mode/playbooks/babysit.md, doc:.claude/skills/mvp-mode/playbooks/shipping.md | Both post on pull requests under a standing grant, Babysit its review-thread replies and Shipping its verdicts, so each names a pull request by its full web address in what it posts and in its reply; the owner's 2026-11-22 adoption (bead cr-r2pa.3.10) covers both. |
+| `gate-loosening-held` | control-loop, doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md | Both run unattended under the owner's grant and hold every loosening of a gate for the owner; control-loop's case is clearing a target by silencing the sensor's tool, which its actuator skips instead (bead cr-p3em.6). |
 | `generated-skill-left-uncommitted` | create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill, maintain-verification-skill | The app generator leaves the skill it writes uncommitted, and the app maintenance pass leaves its fixes uncommitted; land commits either when the person asks (R10). create-formal-verification-skill leaves the formal verify skill it writes uncommitted unless the person asks; land makes the commit (decision 10). maintain-formal-verification-skill leaves its verification edits as one uncommitted change for land (decision 10). |
 | `generated-skill-run-once` | create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill | Each generator follows the skill it writes once, as its next reader, before handing it over: the app generator's proof drive and the formal generator's planted-break proof (decision 3, restated per unit). maintain-formal-verification-skill follows the formal skill it refreshed once the same way, its drift diff, Run command and exit code (decision 3). |
 | `generator-edits-own-output-only` | create-formal-verification-skill, create-verification-skill | Each generator edits only the skill folder it creates and the scaffolding it labels: the app generator's marked startup scaffolding, the formal generator's one reversible planted edit; a product-code fix is the person's call (decision 3). |

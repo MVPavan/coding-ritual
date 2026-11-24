@@ -65,6 +65,9 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 - **Codification**: create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill, maintain-verification-skill
 - **Retrospective**: reflect
 
+### X
+- **Coordination**: control-loop
+
 ## Merge candidates
 
 Two or more active skills share one domain · sub-stage (README §2 rule 3):

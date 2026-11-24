@@ -82,7 +82,8 @@
     "2026-11-23-adoptions-batch-1.jsonl": "68771f6c97bb06db6b0c3344b9b13ec2458efeca593b326b38d0351e2e6aa495",
     "2026-11-23-adoptions-batch-2.jsonl": "1c68f894feda2e279b143ed7095e8483d692a116686496f8ab6e490f55f99c3f",
     "2026-11-23-autopilot-full.jsonl": "e476e20ca1b67a733456fd06eac5704dbfc91f7c2bf5e6b6df50a5d081df249d",
-    "2026-11-24-autopilot-stack.jsonl": "fc6be741c2348f0a7adee5414e65b86a99ceb20b7fc03c1591609df4e7cc9020"
+    "2026-11-24-autopilot-stack.jsonl": "fc6be741c2348f0a7adee5414e65b86a99ceb20b7fc03c1591609df4e7cc9020",
+    "2026-11-24-control-loop.jsonl": "75ecbcca1aae32d8da99b4851a1fb37767c9875aec8f96fedf0b690ae8c55e6b"
   },
   "round_order": [
     "2026-10-14-migration.jsonl",
@@ -166,7 +167,8 @@
     "2026-11-23-adoptions-batch-1.jsonl",
     "2026-11-23-adoptions-batch-2.jsonl",
     "2026-11-23-autopilot-full.jsonl",
-    "2026-11-24-autopilot-stack.jsonl"
+    "2026-11-24-autopilot-stack.jsonl",
+    "2026-11-24-control-loop.jsonl"
   ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",
@@ -225,7 +227,8 @@
     "harness_lifecycle/registry/reviews/2026-11-22-upstream-mattpocock_skills-4ae2317-rejects-review.yaml": "c9d30bf2b09dfb740577d29b9b60d2c5aa48664ad36ab12dca2a7a9f2c7fafa6",
     "harness_lifecycle/registry/reviews/2026-11-22-upstream-mattpocock_skills-5beb35b-rejects-review.yaml": "710f87f0419e8dbcf3931e0e00c2e2d57e8c19a528a0dc208b60758cd83df843",
     "harness_lifecycle/registry/reviews/2026-11-23-upstream-agent-skills-aeac41d-adoptions-batch-2.yaml": "2eebbfaae26374ebbba9a9e869f82a24cf294664136df019ff14af0bd981548e",
-    "harness_lifecycle/registry/reviews/2026-11-23-upstream-superpowers-44c9b2d-autopilot-full.yaml": "751cd3c5854a7da2c1696b1eb5e8d4bf539dbde682801a520fb64835f821315b"
+    "harness_lifecycle/registry/reviews/2026-11-23-upstream-superpowers-44c9b2d-autopilot-full.yaml": "751cd3c5854a7da2c1696b1eb5e8d4bf539dbde682801a520fb64835f821315b",
+    "harness_lifecycle/registry/reviews/2026-11-24-upstream-humanlayer_skills-3c26291-control-loop.yaml": "d3ff20a986a4272153b32b3e469d5c1b7ff2ae1abe081a11380c5e715e1efd01"
   },
   "analyses": {
     "agent-skills:skill:skills/browser-testing-with-devtools@aeac41d": "a01a6050876d6dd3c34aad66dddb422b20f826508ce6a7b8ba9a1c32b6941fbf",
@@ -290,6 +293,7 @@
     "cursor_plugins:skill:pstack/skills/typescript-best-practices@4dd1d05": "1bf3b8b90521ba4d46b2c6c00ece4374c70bdad55a3d4b8ca3e5b915b2884d25",
     "cursor_plugins:skill:pstack/skills/unslop@4dd1d05": "f81653419e306628c1e0e3fa8bad11eae59dac96680ce9337fee939fd3ffb631",
     "cursor_plugins:skill:pstack/skills/why@4dd1d05": "227c7d897de582d6a13886864c14284c5eefb10adce12abe12e24f8aebdc00b5",
+    "humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop@3c26291": "dab87e6352add60bd342d9981868449a0a4b91ea0c87d9d5690f394dfd8a6338",
     "mattpocock_skills:skill:skills/engineering/ask-matt@5beb35b": "7c26278eeb19e4a6c08a40a33ab804f1d66f7f8ce2209126ebcea2c7d56d51a6",
     "mattpocock_skills:skill:skills/engineering/code-review@4ae2317": "d7e4ca279442817f11a848f71f82a40172be04bae0f4c186c2a09ea543f42575",
     "mattpocock_skills:skill:skills/engineering/code-review@5beb35b": "2c50292854d3cd414fb64e68099072c2a468165b6e1fbfbc65fad6e6704871bc",

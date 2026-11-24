@@ -687,3 +687,12 @@ wake:
   aliases: []
   status: active
   boundary: "Holds a run's bounds and its one closing timer; what a return does is its caller's, a run's log is `decision-trail`, and a run the engine owns uses the engine's monitor."
+control-loop:
+  domain: engineering
+  stage: X
+  substage: Coordination
+  secondary: [Maintenance]
+  family: agentic-control-loop
+  aliases: []
+  status: active
+  boundary: "Designs and builds one recurring, scheduled loop that drives a measured property of a codebase toward a target through one small pull request per run, then dry-runs it; driving one condition within a session is autonomous-run, climbing one metric in a session is hillclimb, building settled beads unattended is autopilot-full, and a loop's pull requests merge through shipping."

@@ -440,3 +440,11 @@ no-reused-implementer:
   skills: [doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md, doc:.claude/skills/mvp-mode/playbooks/implement.md]
   why: "Autopilot-full's build step gives each bead a newly started implementer when it delegates, as implement's Task loop does (bead cr-p3em.4)."
   reviewed: "2026-11-23"
+completion-criteria-clarity:
+  skills: [authoring-for-agents, control-loop]
+  why: "authoring-for-agents asks every written step to end on a checkable criterion; control-loop applies it to its own build steps, each ending on a Done when line, adopted with the loop design from its upstream unit (bead cr-p3em.6)."
+  reviewed: "2026-11-24"
+gate-loosening-held:
+  skills: [control-loop, doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md]
+  why: "Both run unattended under the owner's grant and hold every loosening of a gate for the owner; control-loop's case is clearing a target by silencing the sensor's tool, which its actuator skips instead (bead cr-p3em.6)."
+  reviewed: "2026-11-24"

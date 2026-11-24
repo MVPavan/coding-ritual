@@ -1,0 +1,15 @@
+# humanlayer_skills skills: analyses keyed by sha, with accepted/proposed pointers.
+# Rules: harness_lifecycle/registry/README.md §4a;
+# docs/workstreams/skill-curation/stages-design.md §Entries.
+
+"humanlayer_skills:skill:plugins/design-control-loop/skills/design-control-loop":
+  accepted: "3c26291"
+  proposed: null
+  analyses:
+    "3c26291":
+      tree_hash: "05f5766a19f261b1b9678405a0084fb9d6a972926cdfdc7acf7326163bfc386a"
+      placement: {domain: engineering, stage: X, substage: Coordination}
+      traits: [control-loop-vocabulary, repo-survey-before-interview, component-design-interview, set-point-and-scope, sensor-tradeoff-choice, reviewable-increment-controller, tune-controller-from-output, fused-loop-parts, headless-agent-choice, golden-patterns-first, agreed-validation-commands, loop-dampener-offer, written-design-before-build, repo-local-actuator-skill, one-home-per-loop-rule, pr-body-response-template, fix-ignore-skip-outcomes, local-first-components, scheduled-ci-workflow, cadence-by-risk, assembled-actuator-prompt, no-questions-unattended, steering-file-after-controller, iterate-comment-channel, one-open-pr-bound, manual-run-bypasses-bound, loop-config-validation, push-trigger-dry-run, scale-up-once-tuned, parallel-loop-prs, broad-permission-runner, agent-spend-guard, final-message-extraction, no-change-no-pr, loop-scope-gate, cancel-overlapping-runs, stage-all-on-iterate, agent-commits-and-pushes, illustrative-worked-example, completion-criteria-clarity, agent-output-kept]
+      added: {}
+      changed: {}
+      removed: {}
