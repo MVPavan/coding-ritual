@@ -91,7 +91,11 @@ fails `skill-catalog.py --check`), so neither tool auto-triggers them.
    - Records each link, the marketplace file and the `.gitignore` block it created
      (never one that was already there) in
      `.harness-wiring.txt` (`link <path> <target>`, `created <path> <sha256>`,
-     `gitignore-block - <fingerprint>`).
+     `gitignore-block - <fingerprint>`). Each hook entry and key it adds to
+     `.claude/settings.json` or `.codex/hooks.json` gets a `settings-hook` or
+     `settings-key` row (`<file> <event> <command>` or `<file> <key>`, then a
+     fingerprint). A recorded entry the repo later removes stays removed: a rerun
+     reports it and does not add it back.
 2. **Judgement** — the adopt skill's `references/fill-overlay.md` fills
    `.repo-context/*` from repo reality and appends report-only automation
    recommendations.
