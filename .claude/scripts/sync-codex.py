@@ -84,7 +84,7 @@ PAIRS = (
     Pair(
         ".claude/hooks/autopilot-branch-guard.sh",
         ".codex/hooks/autopilot-branch-guard.py",
-        pending=True,  # U5: set wiring=(event, matcher) when this flips
+        wiring=("PreToolUse", "apply_patch|Edit|Write"),
     ),
 )
 

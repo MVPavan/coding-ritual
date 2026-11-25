@@ -38,8 +38,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/block-generated-edits.py\"",
+            "command": "top=$(env -u GIT_DIR -u GIT_WORK_TREE -u GIT_COMMON_DIR -u GIT_INDEX_FILE git rev-parse --show-toplevel 2>/dev/null) && [ -n \"$top\" ] && [ -f \"$top/.codex/hooks/block-generated-edits.py\" ] || exit 0; exec python3 \"$top/.codex/hooks/block-generated-edits.py\"",
             "statusMessage": "Checking generated mirror edits"
+          }
+        ]
+      },
+      {
+        "matcher": "apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "top=$(env -u GIT_DIR -u GIT_WORK_TREE -u GIT_COMMON_DIR -u GIT_INDEX_FILE git rev-parse --show-toplevel 2>/dev/null) && [ -n \"$top\" ] && [ -f \"$top/.codex/hooks/autopilot-branch-guard.py\" ] || exit 0; exec python3 \"$top/.codex/hooks/autopilot-branch-guard.py\"",
+            "statusMessage": "Checking the Autopilot-full branch guard"
           }
         ]
       }

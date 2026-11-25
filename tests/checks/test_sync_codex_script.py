@@ -41,6 +41,10 @@ HOOKS_JSON = {
                 "apply_patch|Edit|Write",
                 'python3 "$top/.codex/hooks/block-generated-edits.py"',
             ),
+            entry(
+                "apply_patch|Edit|Write",
+                'python3 "$top/.codex/hooks/autopilot-branch-guard.py"',
+            ),
         ],
     }
 }
@@ -70,6 +74,7 @@ def build(root: Path, layout: str = "dir") -> Path:
     (claude_hooks / "block-generated-edits.sh").write_text("#!/usr/bin/env bash\n")
     (claude_hooks / "autopilot-branch-guard.sh").write_text("#!/usr/bin/env bash\n")
     (codex_hooks / "block-generated-edits.py").write_text("print()\n")
+    (codex_hooks / "autopilot-branch-guard.py").write_text("print()\n")
     (root / ".codex" / "hooks.json").write_text(json.dumps(HOOKS_JSON, indent=2))
     for name in ("alpha", "beta"):
         skill = root / ".agents" / "skills" / name
@@ -236,31 +241,53 @@ def test_a_malformed_hook_list_is_reported(tmp_path: Path) -> None:
 
 
 def test_declared_pairs_need_their_halves(tmp_path: Path) -> None:
-    """A pending pair needs only its Claude half; an active pair needs both."""
-    repo = build(tmp_path)
-    assert not (repo / ".codex" / "hooks" / "autopilot-branch-guard.py").exists()
-    assert run(repo, "--check").returncode == 0
-
+    """An active pair needs its Claude half, its Codex half and its wiring."""
+    repo = build(tmp_path / "claude")
     (repo / ".claude" / "hooks" / "autopilot-branch-guard.sh").unlink()
-    pending = run(repo, "--check")
-    assert pending.returncode == 1
+    completed = run(repo, "--check")
+    assert completed.returncode == 1
     assert (
         ".claude/hooks/autopilot-branch-guard.sh: Claude half of a declared pair missing"
-        in pending.stdout
+        in completed.stdout
     )
 
-    repo = build(tmp_path / "active")
+    repo = build(tmp_path / "codex")
     hooks_json = repo / ".codex" / "hooks.json"
     data = json.loads(hooks_json.read_text())
-    data["hooks"]["PreToolUse"].pop()  # the active pair's Codex half is unreferenced
+    data["hooks"]["PreToolUse"].pop()  # the guard's Codex half is unreferenced
     hooks_json.write_text(json.dumps(data))
-    (repo / ".codex" / "hooks" / "block-generated-edits.py").unlink()
-    active = run(repo, "--check")
-    assert active.returncode == 1
+    (repo / ".codex" / "hooks" / "autopilot-branch-guard.py").unlink()
+    completed = run(repo, "--check")
+    assert completed.returncode == 1
     assert (
-        ".codex/hooks/block-generated-edits.py: Codex half of "
-        ".claude/hooks/block-generated-edits.sh missing" in active.stdout
+        ".codex/hooks/autopilot-branch-guard.py: Codex half of "
+        ".claude/hooks/autopilot-branch-guard.sh missing" in completed.stdout
     )
+
+
+def test_the_branch_guard_must_be_wired(tmp_path: Path) -> None:
+    """The Codex guard present but unregistered, or under another matcher, fails."""
+    want = (
+        ".codex/hooks.json: no PreToolUse [apply_patch|Edit|Write] entry runs "
+        ".codex/hooks/autopilot-branch-guard.py"
+    )
+    repo = build(tmp_path / "unwired")
+    hooks_json = repo / ".codex" / "hooks.json"
+    data = json.loads(hooks_json.read_text())
+    data["hooks"]["PreToolUse"].pop()
+    hooks_json.write_text(json.dumps(data))
+    completed = run(repo, "--check")
+    assert completed.returncode == 1
+    assert want in completed.stdout
+
+    repo = build(tmp_path / "matcher")
+    hooks_json = repo / ".codex" / "hooks.json"
+    data = json.loads(hooks_json.read_text())
+    data["hooks"]["PreToolUse"][-1]["matcher"] = "apply_patch"
+    hooks_json.write_text(json.dumps(data))
+    completed = run(repo, "--check")
+    assert completed.returncode == 1
+    assert want in completed.stdout
 
 
 # Writes stay inside the repository (finding 1) ---------------------------------
