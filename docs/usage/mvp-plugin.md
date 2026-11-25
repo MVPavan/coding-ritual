@@ -60,13 +60,17 @@ fails `skill-catalog.py --check`), so neither tool auto-triggers them.
 
 ## 4. How `adopt` and `update` work
 
-1. **Deterministic** — `scripts/install-harness.sh`, the same script for both:
+1. **Deterministic** — `scripts/install-harness.sh`, the same script for both
+   (update passes `--update`):
    - Preflight, before any move, stub, link or `bd init`: refuses the workshop (a repo
-     holding the plugin's `publish-manifest.txt` or an `mvp-harness` submodule), and
-     refuses when a skill name is in both a real `.claude/skills` and `.agents/skills`,
-     or in either and the incoming payload, listing every clash.
-   - Initialises beads (first adopt only; `bd init` makes its own commit) and points
-     sync at origin.
+     holding the plugin's `publish-manifest.txt` or an `mvp-harness` submodule); refuses
+     a linked `.claude` or `.agents`, and a link at or inside an incoming or stamped
+     skill path in `.agents/skills` (the exact Claude view links are allowed); and
+     refuses when a skill name, compared case-insensitively, is in both a real
+     `.claude/skills` and `.agents/skills`, or in either and the incoming payload,
+     listing every clash.
+   - Initialises beads (adopt only, never with `--update`; `bd init` makes its own
+     commit) and points sync at origin.
    - Legacy layout: each `.claude/project/x` moves to `.repo-context/x` only where that
      name is free; the old links `.codex/project` → `../.claude/project` and
      `.codex/rules/{core,python}` → `../../.claude/rules/{core,python}` are removed only
@@ -84,7 +88,8 @@ fails `skill-catalog.py --check`), so neither tool auto-triggers them.
    - Appends the `.gitignore` block, merges hooks and the marketplace recommendation
      into `.claude/settings.json`, retires untouched files the payload dropped, stamps
      the new manifest, and builds the Claude view of `scripts/skill-layout.txt`.
-   - Records each link, the marketplace file and the `.gitignore` block it created in
+   - Records each link, the marketplace file and the `.gitignore` block it created
+     (never one that was already there) in
      `.harness-wiring.txt` (`link <path> <target>`, `created <path> <sha256>`,
      `gitignore-block - <fingerprint>`).
 2. **Judgement** — the adopt skill's `references/fill-overlay.md` fills
