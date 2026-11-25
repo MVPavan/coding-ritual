@@ -84,7 +84,8 @@ Deliver correct work with the smallest necessary change, done right the first ti
 - Shared policy lives here; `.repo-context/` holds shared repository guidance.
   Runtime configuration owns model settings and enforcement.
 - This repo also holds the first-party `workflow_interpreter/` engine with a real
-  Python gate and no CI.
+  Python gate and no CI. Its tracker port owns the `wf:attention` bead label;
+  never add, remove or reuse it by hand.
 - Use repo-relative paths in committed material; temporary artifacts go in
   gitignored `scratchpad/`. `reference_harnesses/` and `reference_tools/` are
   read-only submodules except for explicitly authorized submodule work or pointer

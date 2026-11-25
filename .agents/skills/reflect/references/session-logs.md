@@ -5,8 +5,8 @@ listed (`SKILL.md` step 2). Both stores hold one JSON record per line. Order
 files by modification time (`ls -t` or `stat`), never by file name. Identify a
 file from its name and first line; read further only in the sessions in scope.
 
-The current session's id is `CLAUDE_CODE_SESSION_ID` in Claude Code and
-`CODEX_THREAD_ID` in Codex. Modification time never identifies it. When a
+The current session's id is `CLAUDE_CODE_SESSION_ID` (Claude Code) or
+`CODEX_THREAD_ID` (Codex). Modification time never identifies it. When a
 session in scope has no readable id, list this project's candidate logs in
 every store and accept one only when its id, parent or run record, with the
 session's known opening prompt as corroboration, identifies that session alone,
@@ -21,7 +21,7 @@ one file per session. The helper sessions it dispatched are
 
 ## Codex
 
-`~/.codex/sessions/<yyyy>/<mm>/<dd>/rollout-*.jsonl`, one file per session. The
+`$CODEX_HOME/sessions/<yyyy>/<mm>/<dd>/rollout-*.jsonl` (`CODEX_HOME` defaults to `~/.codex`), one file per session. The
 first line is a `session_meta` record whose `payload` holds the session's `id`
 and `cwd`; keep only sessions whose `cwd` is this workspace. A dispatched
 session's `payload.parent_thread_id` is its parent's `id`: follow these links

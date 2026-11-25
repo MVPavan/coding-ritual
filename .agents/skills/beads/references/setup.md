@@ -3,7 +3,7 @@
 How to install `bd` and adopt Beads in a project that uses this harness, and
 how to join an existing Beads project from a new machine or clone. The rules
 for using Beads are in `usage.md`. Upgrading `bd` across several projects is
-an owner procedure with its own principles: `harness_lifecycle/beads/upgrades.md`.
+an owner procedure with its own principles, kept outside this skill.
 
 ## 1. Install bd
 
@@ -79,7 +79,7 @@ repository.
    Then replace bd's built-in prime text with this skill's rules:
 
    ```bash
-   ln -s ../.claude/skills/beads/references/prime.md .beads/PRIME.md
+   ln -s ../.agents/skills/beads/references/prime.md .beads/PRIME.md
    bd prime | head -5   # must start with "# Beads: core rules"
    ```
 

@@ -8,8 +8,8 @@ same one all session. Claims belong to the actor that made them.
 
 - **Coding agent:** `cc` (Claude Code), `codex`, `opencode`, `pi`, and so on.
 - **Unique ID:** a session ID or session name.
-  - cc: `${CLAUDE_CODE_SESSION_ID:0:8}`;
-  - codex: `${CODEX_THREAD_ID:0:8}`.
+  - cc (Claude Code): `${CLAUDE_CODE_SESSION_ID:0:8}`;
+  - codex (Codex): `${CODEX_THREAD_ID:0:8}`.
 
 ## Scope
 

@@ -15,8 +15,8 @@ tool's own description here, [H] the installed CLI's help, [O] observed here, [I
 - **Survives:** it fires only while the session runs and is idle [D]. Closing the terminal stops
   it. Backgrounding carries the loop command's tasks over [D], plain cron tasks [?]. `--resume` does not
   restore a passed one-shot [D].
-- **Gaps:** `CLAUDE_CODE_DISABLE_CRON` removes it [D]. `ScheduleWakeup` is for a person's loop command
-  [T], so it is not used.
+- **Gaps:** `CLAUDE_CODE_DISABLE_CRON` (Claude Code environment variable) removes it [D].
+  `ScheduleWakeup` is for a person's loop command [T], so it is not used.
 - **One prompt or SDK:** this fails the evidence above: tools can be listed there and never get
   a turn, and the timer would end with the run [I]. `unavailable`. `--max-budget-usd` exists
   only here [H].

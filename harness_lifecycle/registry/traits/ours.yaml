@@ -14,7 +14,7 @@ ours:authoring-for-agents:
     inline-vs-disclose: "An unconditional read saves no context."
     check-proved-on-real-mistake: "Delivers sealed row 2026-11-06-batch-p1:160: a real past mistake when one exists, otherwise a planted violation, saying which, where the definition requires a real one; T5."
 ours:beads:
-  tree_hash: "4033071f23315c2f9052a4dc8f65023b5c9115f6afef9a79212b1aa813e9d6e6"
+  tree_hash: "63147ae923dc14797ed36b830b4ba883358f56616e8bca6177ff98432ab191ca"
   traits: [bead-type-taxonomy, field-roles, wait-as-edge, actor-identity, resume-line, session-close, session-recovery, knowledge-in-files, beads-setup, status-model, triage-routing, durable-unit-scope, review-as-task, destructive-command-guard, repeated-procedures, dolt-sync]
 ours:settle-open-questions:
   tree_hash: "34c2a82e18bc84e27cb9193d5966ccca9c22d2169dbbaf2149071ec711e099fe"
@@ -255,7 +255,7 @@ ours:to-spec:
   tree_hash: "b5c65663574e18bdb07472ddec3fb6a7669586ea38ce21d66e8f398504e883d6"
   traits: [synthesize-settled, spec-template, spec-criteria-and-questions, none-keeps-heading, testing-seam-decision, no-stale-file-paths, no-stale-code-snippets, prototype-snippet, spec-approval-gate, material-risk-review, user-perspective-framing, implementation-decisions-scope, testing-decisions-contents]
 ours:tracker:
-  tree_hash: "13a2fc0c01126ba945e778d35a17b29e08acbbac9353ed6928dcec14e1ecc2f8"
+  tree_hash: "a0d96faa81f92416fb9ca7bf3a13bbbab32f5683f64b19d76a8bbf43e66a9072"
   traits: [phase-epic-contract, phase-epic-lookup, workstream-layout, beads-native-tracking, workstream-extension, dependency-edges, real-id-wiring, one-phase-plan-tracking, flat-operational-tracking, close-gate, workstream-render, session-spanning-unit-beads]
   notes:
     beads-native-tracking: "The roadmap anchor is the --spec-id and the governing spec is --design; the renderer derives the workstream from the anchor, so a plan path never goes in --design."
@@ -283,7 +283,7 @@ ours:wayfinder:
     decision-map-epic: "A Beads epic whose title starts with Map:."
     record-resolution: "Updates invalidated dependencies without deleting history."
 doc:AGENTS.md:
-  tree_hash: "f110f4d6f132b0cac0eadc77e1be20b70a0b055990226e9e8685efcc56eb904a"
+  tree_hash: "452a44cb62ce4b9aef917696fe754793cde52e3da4e8dafb6c7a43391a165fa4"
   traits: [smallest-sufficient-change, implementation-authority-carry, inspection-only-authority, material-ambiguity-ask, work-while-waiting, consequential-action-authorization, approval-persistence, accuracy-over-agreement, no-grade-inflation, certainty-labelling, no-fabrication, scoped-reading, logs-behind-references, untrusted-content-no-authority, primary-evidence-check, volatile-fact-verification, decision-conflict-surfacing, handoff-contents, learnings-capture, memory-on-request, reuse-existing-first, present-requirement-only, no-unrelated-cleanup, owning-layer-fix, caller-impact-check, limitation-with-revisit, proportional-effort, explicit-workflow-adherence, configured-model-use, independence-batching, no-evidence-pivot, no-onward-delegation, worker-brief-contents, preserve-others-edits, no-duplicate-delegated-work, coordinator-ownership, applicable-checks-before-done, risk-proportional-tests, original-failure-check, rerun-on-change-only, final-diff-inspection, final-report-contents, secret-containment, simplification-preserves-safeguards, safe-retry-only, no-guard-bypass, explicit-path-staging, destructive-git-guard, commit-push-authority, merge-base-selection, merged-result-verification, unmerged-work-protection, repo-relative-committed-paths, scratch-artifact-location, read-only-references, minimal-borrowing, plugin-subset-invariant, resume-bead-and-handoff, generated-mirror-read-only, plain-path-references, durable-work-tracking, router-at-task-start, recurring-lesson-to-check, tool-when-it-pays, script-over-fanout, direct-observation, suspect-the-observation, irreversible-writes-wait]
 doc:.repo-context/coding-style.md:
   tree_hash: "69c61c0c79bafd364f463e9a7e38bf023d39bc10223490f94d72523f29cd0868"
@@ -294,7 +294,7 @@ doc:.repo-context/verification.md:
   tree_hash: "69d0c42fe2e2e6f83f5e16dd7ad2f7b301f15d592d8bd57a6fcc3740535c1a69"
   traits: [checks-by-changed-material, docs-only-suite-exemption, claim-evidence-table, partial-verification-report, diff-whitespace-check, doc-link-validation, historical-vs-active-guidance, syntax-checks-by-file-type, shell-lint-when-available, harness-code-suite, registry-check-on-change, tracker-cli-health, tracker-export-current, skill-catalog-check, guard-hook-block-proof, plugin-harness-or-unverified]
 ours:wake:
-  tree_hash: "c75ab0ca50f5de35a9607e148c2c7090a3131b200e00c978278a862e9d083af8"
+  tree_hash: "c3d136c55d32fbb6815bc4c2ecfaae63f1a168c53a58c55ac4ee24b0125d1e00"
   traits: [run-card-limits, one-consuming-admit, one-closing-timer, timer-positive-evidence, timer-identity-check, timer-close-cancels, woken-run-limits]
 ours:control-loop:
   tree_hash: "f56b0bc54f413b14242860e67b0df578a7e1d45658e86a7fb1f00e0fd66492d7"
@@ -309,7 +309,7 @@ ours:sharpen:
   tree_hash: "7108bef3337bcfb5e3c2c560a51cf5f6aca07ee9fe59c5566371c08db5ed6af4"
   traits: [depth-not-scope-rewrite, diagnose-then-rewrite-prompt, expert-gap-question, rawest-source-question, expert-methods-question, outside-correctness-signal, owner-choices-left-open]
 ours:recall:
-  tree_hash: "e5237e7c4594d34349907152eb036e54dcb181f753a93d735fbd76e1abd7b60f"
+  tree_hash: "1cc019925fa18002c8f43188afdbbaab6aa966c2908273bd9b93734719bbc553"
   traits: [current-state-capsule-goal, two-record-context-model, recall-routes-away, skip-mining-with-supplied-state, lock-scope-before-search, seven-day-default-window, active-workspace-only-default, no-silent-narrowing, order-by-real-mtime, grep-then-read-matching-regions, exclude-current-and-noise-chats, uniform-per-chat-schema, finding-cited-by-source-kind, direct-search-for-small-corpus, default-shared-record-sweep, one-helper-per-sizeable-source, retarget-investigator-question, empty-search-is-finding, full-transcript-for-agent-behaviour, brief-grouped-by-thread, brief-section-order, capped-capsule-section, status-tagged-thread-lines-with-abandoned, capped-recurring-problems, single-next-move, adjacent-excluded-unless-blocking, cut-detail-before-threads, reply-is-the-deliverable]
 ours:no-comments:
   tree_hash: "f0432cc638fff5e8c63596e0f5d93de3c9e2646a58f99c34df565492ad10b886"
@@ -318,7 +318,7 @@ ours:principle-no-comments:
   tree_hash: "ad98275b7e7e0f99b69ede8b3b48036b2a93f94799ebd3ac5073d1c499d04cbb"
   traits: [exact-proof-settles-a-protected-keep, unsure-comment-kept-and-flagged, safety-suppressions-removed, constraint-comment-class, unchangeable-constraint-kept]
 ours:reflect:
-  tree_hash: "fbdb48c4fa528a86f974946084f3d2d58d01a760f7a24640dfa53e1ce3224d7e"
+  tree_hash: "93dd2c2cf448c2f5fd51366a7af1d1818232685d75c3df2eb67253126c1ac663"
   traits: [sampled-session-retros, failures-first-retro-sample, environment-retro-categories, read-existing-check-first, read-session-sources, severity-ordered-proposals, retro-in-reviewed-session, one-offs-not-lessons, no-cross-project-transcript-search, brief-sent-as-written, findings-in-the-reply, three-way-finding-disposition, approval-before-applying-findings, approved-routing-followed, used-or-missed-unit-scope, closing-summary-parts, durable-principle-lens, brief-only-read-only, finding-with-evidence-and-destination, rule-not-label, skip-drifting-details, concrete-tooling-lens, decision-changing-finding, one-row-per-finding, transcript-location-convention, transcript-located-by-layout-probe, mine-and-group-mistakes, two-occurrence-threshold, most-frequent-classes-first, class-evidence-level-report]
 ours:pr:
   tree_hash: "7d870404440a0a76e68b6ab977476e0e002e07748f7ab10beaf2ccb4edd84c71"

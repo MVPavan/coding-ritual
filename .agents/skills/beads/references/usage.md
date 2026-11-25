@@ -5,8 +5,7 @@ How projects that use this harness track work with Beads (`bd`, release
 start and after compaction. This file holds the detail behind them. Installing
 and adopting Beads in a project is in `setup.md`.
 
-Behavior claims come from the tested capabilities guide
-(`harness_lifecycle/beads/capabilities-1.3.0.md`). §19 lists
+Behavior claims come from a capabilities guide tested against bd 1.3.0. §19 lists
 the behaviors most likely to catch an agent out. Owner decisions are dated
 2026-10-06 unless stated.
 
@@ -28,9 +27,9 @@ the behaviors most likely to catch an agent out. Owner decisions are dated
 - Every write names its actor: `--actor "<coding-agent>:<unique-id>"`.
   - **Coding agent:** `cc` (Claude Code), `codex`, `opencode`, `pi`, and so on.
   - **Unique ID:** a session ID or session name.
-    - cc: `${CLAUDE_CODE_SESSION_ID:0:8}` (set in every shell; checked on
-      Claude Code 2.1.289);
-    - codex: `${CODEX_THREAD_ID:0:8}` (owner-supplied, 2026-10-06).
+    - cc (Claude Code): `${CLAUDE_CODE_SESSION_ID:0:8}` (set in every shell;
+      checked on Claude Code 2.1.289);
+    - codex (Codex): `${CODEX_THREAD_ID:0:8}` (owner-supplied, 2026-10-06).
   - A subagent or worker appends its role to its parent's actor
     (`cc:3f9a2c1d-review`). A review must come from a different actor than
     the author (§12).
@@ -371,7 +370,7 @@ silently:
 | `bd list` stops at 50 and `bd ready` at 100, silently dropping the rest | `--limit 0`; `--max-rows` for a hard cap (exit 2) |
 | repeating `-s` keeps only the last value | `-s open,in_progress` |
 | `bd query` dates are points in the past: `updated>7d` means updated within 7 days | check with `--parse-only` |
-| `bd config set` accepts unknown keys silently, and `bd config show` prints stored defaults rather than code defaults (it shows `backup.enabled` false while auto-backup runs) | read the capabilities guide before relying on a key |
+| `bd config set` accepts unknown keys silently, and `bd config show` prints stored defaults rather than code defaults (it shows `backup.enabled` false while auto-backup runs) | before relying on a key, confirm it and its effective default in the installed bd release's source, or observe it in a scratch project with the same backend mode and git remote setup |
 | `bd init` runs agent setup recipes: a second Claude SessionStart prime hook, four `bd codex-hook` events and an AGENTS.md block that says to use `bd remember` | `bd init --skip-agents`; never `bd setup` in a harness repo (`setup.md`) |
 | `bd init` inside a checkout nested in another Beads repo resolves to the parent's database, and so do `BEADS_DIR` and `--directory` | a second database needs its own git repo with a seeded `.beads/config.yaml` (`setup.md`) |
 | `bd init` over an existing database aborts; on a fresh clone `bd ready` says "no beads database found" and suggests `bd init` | `bd bootstrap` |
@@ -423,11 +422,6 @@ listed here.
 
 ## 22. Repository exceptions
 
-- **The workflow engine's label.** `workflow_interpreter/`'s tracker port
-  adds and removes the `wf:attention` label on the beads it works on
-  (`workflow_interpreter/tracker/constants.py`). It is machine-owned: never
-  add, remove or reuse it by hand. Since ADR 0006 the engine keeps its own
-  records in its ledger, not in Beads.
 - **Deferred export.** When the owner restricts which paths a session may
   write and `.beads/issues.jsonl` is outside them, do not write it; report the
   export as pending in the session close.

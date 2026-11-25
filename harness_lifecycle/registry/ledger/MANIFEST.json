@@ -85,7 +85,8 @@
     "2026-11-24-autopilot-stack.jsonl": "fc6be741c2348f0a7adee5414e65b86a99ceb20b7fc03c1591609df4e7cc9020",
     "2026-11-24-control-loop.jsonl": "75ecbcca1aae32d8da99b4851a1fb37767c9875aec8f96fedf0b690ae8c55e6b",
     "2026-11-25-agents-skills.jsonl": "6591fa2ed6ae6b082866c9dff3aa51f7a8568b2d6fec2d360874835f586c4e82",
-    "2026-11-25-codex-sync.jsonl": "606a97dbc363be91be25b0beb05a4f381ed8958b88a68e2f6d20411f05352ce1"
+    "2026-11-25-codex-sync.jsonl": "606a97dbc363be91be25b0beb05a4f381ed8958b88a68e2f6d20411f05352ce1",
+    "2026-11-25-shipped-neutrality.jsonl": "53592e10ac45d62484c01773e9c4e73ef2b9c9909daf0c9fe8f295931f4ffc31"
   },
   "round_order": [
     "2026-10-14-migration.jsonl",
@@ -172,7 +173,8 @@
     "2026-11-24-autopilot-stack.jsonl",
     "2026-11-24-control-loop.jsonl",
     "2026-11-25-agents-skills.jsonl",
-    "2026-11-25-codex-sync.jsonl"
+    "2026-11-25-codex-sync.jsonl",
+    "2026-11-25-shipped-neutrality.jsonl"
   ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",

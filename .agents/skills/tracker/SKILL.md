@@ -45,7 +45,7 @@ acceptance the spec's success criteria, a `plan: <path>` note. Create one stage
 child per `Stage: proposed <name>` in the plan, with acceptance from the plan's
 covering tasks, then wire the real edges. **Bind** each `Stage: proposed <name>` in
 the plan to its returned `<epic>.N` before `implement` starts; on a Skeleton plan,
-rerun `.claude/skills/to-plan/scripts/check_plan.py <plan>` until it exits 0. The
+rerun `.agents/skills/to-plan/scripts/check_plan.py <plan>` until it exits 0. The
 binding records the approved structure; it changes no scope. The consumer is task
 scope, not the phase loop: no roadmap, no workstream directory.
 
@@ -97,7 +97,7 @@ acceptance; no phases, no roadmap.
   `mvp-mode`; in a delegated task, report the route).
   Then close with the evidence as `--reason` and as a comment.
 - **Render.** After any change, update Beads, then run
-  `BD_RENDER=1 bash .claude/skills/tracker/scripts/bd-render-tracking.sh [<name>]`.
+  `BD_RENDER=1 bash .agents/skills/tracker/scripts/bd-render-tracking.sh [<name>]`.
   It writes `docs/workstreams/{status,ideas,backlog}.md` and each workstream's
   `tracking/*.md`; never hand-edit them (a hook blocks it). The ideas board lists
   deferred spikes, the backlog board every other deferred bead. `README.md`,

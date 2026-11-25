@@ -30,9 +30,8 @@ missing, run `bd prime`:
   owner's authority.
 - Knowledge goes in files, not `bd remember` or `bd kv`. Preserve that
   choice unless the owner changes it.
-- Repository exceptions (`references/usage.md` §22): the workflow engine's
-  `wf:attention` label, and a deferred export when the owner restricts
-  writable paths.
+- Repository exception (`references/usage.md` §22): a deferred export when
+  the owner restricts writable paths.
 
 ## Read when needed
 
@@ -41,9 +40,6 @@ missing, run `bd prime`:
 | Any rule in detail: types, fields, waits and gates, triage, claims, reviews, session close, hygiene, traps, commands | `references/usage.md` |
 | Installing bd, adopting Beads in a project, joining from a new machine or clone | `references/setup.md` |
 | The exact text sessions receive, including the common commands | `references/prime.md` |
-| Whether bd really behaves a certain way: the tested guide to every feature | `harness_lifecycle/beads/capabilities-1.3.0.md` |
-| An exact command, subcommand or flag (generated; search it, do not read it whole) | `harness_lifecycle/beads/cli-1.3.0.md`, then `bd <command> --help` |
-| Upgrading bd or migrating Beads databases (owner procedure) | `harness_lifecycle/beads/upgrades.md` |
-| bd's built-in prime text, for comparing after an upgrade | `harness_lifecycle/beads/prime-original-1.3.0.md` |
+| An exact command, subcommand or flag | `bd <command> --help` |
 
 Workstreams, phase epics and tracking files: `tracker`.

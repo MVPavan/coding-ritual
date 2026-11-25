@@ -17,6 +17,10 @@ Archived research is evidence, not operating policy.
 | Answering why with the `why` skill, or adding an outside system | `.repo-context/evidence-sources.md` |
 | Grilling summaries and questionnaires, saved or looked up | `docs/interviews/` (`README.md`) |
 | Beads the tool: policy, setup, closeout, `bd` behavior and flags, upgrades | `beads` skill, `.claude/skills/beads/SKILL.md` (its table routes to the reference) |
+| Beads: whether bd really behaves a certain way (tested guide to every feature) | `harness_lifecycle/beads/capabilities-1.3.0.md` |
+| Beads: an exact command, subcommand or flag (generated; search it, do not read it whole) | `harness_lifecycle/beads/cli-1.3.0.md`, then `bd <command> --help` |
+| Beads: upgrading bd or migrating Beads databases (owner procedure) | `harness_lifecycle/beads/upgrades.md` |
+| Beads: bd's built-in prime text, for comparing after an upgrade | `harness_lifecycle/beads/prime-original-1.3.0.md` |
 | Workstreams, phase epics, plan records, tracking files | `tracker` skill, `.claude/skills/tracker/SKILL.md` |
 
 ## Component work

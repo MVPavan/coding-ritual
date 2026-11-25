@@ -29,6 +29,7 @@ No adopted lineage recorded.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-25` **update** (2026-11-25-shipped-neutrality:005): Bead cr-e0a, unit U7 (neutrality of shipped files): wording only. CLAUDE_CODE_* mentions labelled as Claude Code beside the Codex form, .claude/skills paths be…
 - `2026-11-04` **add** (2026-11-04-batch-4:001): New skill, owner rulings of 2026-11-04 amending ruling 12: a card holding one run's limits, attempts, closed state and checkpoint for any run with a stated lim…
 <!-- /registry:generated history -->
 
