@@ -83,15 +83,22 @@ Deliver correct work with the smallest necessary change, done right the first ti
 
 - Shared policy lives here; `.repo-context/` holds shared repository guidance.
   Runtime configuration owns model settings and enforcement.
+<!-- workshop-only -->
 - This repo also holds the first-party `workflow_interpreter/` engine with a real
   Python gate and no CI. Its tracker port owns the `wf:attention` bead label;
   never add, remove or reuse it by hand.
+<!-- /workshop-only -->
 - Use repo-relative paths in committed material; temporary artifacts go in
-  gitignored `scratchpad/`. `reference_harnesses/` and `reference_tools/` are
-  read-only submodules except for explicitly authorized submodule work or pointer
-  updates; borrow only the smallest justified pattern.
+  gitignored `scratchpad/`.
+  <!-- workshop-only generic: Submodules, if any, are read-only except for explicitly authorized submodule work or pointer updates. -->
+  `reference_harnesses/` and `reference_tools/` are read-only submodules except
+  for explicitly authorized submodule work or pointer updates; borrow only the
+  smallest justified pattern.
+  <!-- /workshop-only -->
+<!-- workshop-only -->
 - The plugin's shipped set stays a strict subset of the root harness: the units
   `repo-owned` in `.repo-context/harness-settings.txt` stay out of it.
+<!-- /workshop-only -->
 
 ### New session
 
