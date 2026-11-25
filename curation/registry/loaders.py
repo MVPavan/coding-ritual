@@ -246,22 +246,39 @@ def _unfenced_lines(text: str) -> list[str]:
     return kept
 
 
+def routes_text(cfg: RegistryConfig) -> str:
+    """The repo's own route lines, `routes.md` beside the router, with comments
+    and fenced examples removed; any remaining line there in a router entry's
+    form routes, whatever its heading. Empty when absent."""
+    path = cfg.router_path.parent / "routes.md"
+    if not path.is_file():
+        return ""
+    text = re.sub(r"<!--.*?-->", "", path.read_text(encoding="utf-8"), flags=re.DOTALL)
+    return "\n".join(_unfenced_lines(text)) + "\n"
+
+
 def _principle_situation(cfg: RegistryConfig, name: str) -> str:
     """A principle's situation: its line in the router's live `## Principles`
-    section, the only copy (unit-kinds P1). Comments and fenced examples route
-    nothing, as in the catalog check. Empty when the router has none."""
-    if not cfg.router_path.is_file():
-        return ""
+    section or in `routes.md`, the only copy (unit-kinds P1). Comments and
+    fenced examples route nothing, as in the catalog check. Empty when neither
+    has one."""
     stem = re.escape(name.removeprefix(PRINCIPLE_PREFIX))
     entry = re.compile(rf"- `principles/{stem}\.md`:\s*(.+)")
-    text = re.sub(
-        r"<!--.*?-->", "", cfg.router_path.read_text(encoding="utf-8"), flags=re.DOTALL
-    )
-    in_section = False
-    for line in _unfenced_lines(text):
-        if line.startswith("## "):
-            in_section = line[3:].strip() == "Principles"
-        elif in_section and (found := entry.fullmatch(line.rstrip())):
+    if cfg.router_path.is_file():
+        text = re.sub(
+            r"<!--.*?-->",
+            "",
+            cfg.router_path.read_text(encoding="utf-8"),
+            flags=re.DOTALL,
+        )
+        in_section = False
+        for line in _unfenced_lines(text):
+            if line.startswith("## "):
+                in_section = line[3:].strip() == "Principles"
+            elif in_section and (found := entry.fullmatch(line.rstrip())):
+                return " ".join(found.group(1).split())
+    for line in routes_text(cfg).splitlines():
+        if found := entry.fullmatch(line.rstrip()):
             return " ".join(found.group(1).split())
     return ""
 

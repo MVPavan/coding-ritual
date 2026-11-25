@@ -3020,3 +3020,22 @@ def test_plain_name_lifecycle_is_unchanged() -> None:
     assert checks_ledger.reuse_errors(events) == [
         "r:4: add reintroduces 'old', retired by rename r:2"
     ]
+
+
+def test_router_parse_reads_routes_md(tmp_path: Path) -> None:
+    """A repo's own route lines live in `mvp-mode/routes.md` beside the router;
+    the registry reads them as router lines."""
+    from curation.registry.views import viewer
+
+    cfg = _make_cfg(tmp_path)
+    cfg.router_path.parent.mkdir(parents=True)  # type: ignore[attr-defined]
+    cfg.router_path.write_text("## Principles\n\n", encoding="utf-8")  # type: ignore[attr-defined]
+    (cfg.router_path.parent / "routes.md").write_text(  # type: ignore[attr-defined]
+        "# Routes\n\n- `principles/local.md`: a local situation.\n\n"
+        "```markdown\n- `principles/ghost.md`: an example only.\n```\n",
+        encoding="utf-8",
+    )
+    assert loaders.skill_description(cfg, "principle-local") == "a local situation."
+    assert loaders.skill_description(cfg, "principle-ghost") == ""
+    router = viewer.build_router(cfg, cfg.router_path.read_text(), {}, {}, {})  # type: ignore[arg-type,attr-defined]
+    assert [p["name"] for p in router["principles"]] == ["local"]

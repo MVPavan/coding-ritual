@@ -1,0 +1,10 @@
+upstream	https://github.com/MVPavan/coding-ritual
+repo-owned	harness-evaluate
+repo-owned	harness-publish
+repo-owned	harness-scan
+repo-owned	harness-skill-compare
+repo-owned	harness-status
+repo-owned	in-progress
+repo-owned	mvp-mode/routes.md
+repo-owned	mvp-mode/playbooks/skill-curation.md
+repo-owned	mvp-mode/playbooks/skill-curation/

@@ -12,9 +12,9 @@ steps:
     when: the framing is stated
     actions:
       - {trait: landable-units-or-named-group}
-      - {trait: riskiest-unknown-first}             # T5: follows sealed row 2026-11-06-batch-p1:237, largest unknown first only where dependencies allow; logged in .repo-context/unit-kinds.md §5
+      - {trait: riskiest-unknown-first}             # T5: follows sealed row 2026-11-06-batch-p1:237, largest unknown first only where dependencies allow; logged in .repo-context/unit-kinds.md (if present) §5
       - {trait: scaffold-first}
-      - {trait: harness-with-pre-change-baseline}   # T5: follows sealed row 2026-11-06-batch-p1:239, builds the check first only when it does not exist yet; logged in .repo-context/unit-kinds.md §5
+      - {trait: harness-with-pre-change-baseline}   # T5: follows sealed row 2026-11-06-batch-p1:239, builds the check first only when it does not exist yet; logged in .repo-context/unit-kinds.md (if present) §5
       - {trait: alternatives-compared-on-one-way-doors}
       - {trait: fan-out-across-seams-only}
       - {trait: worktree-or-branch-per-worker}
@@ -36,7 +36,7 @@ steps:
       - {trait: too-easy-pass-suspicion}
       - {trait: judge-paired-with-delegation}
       - {trait: bounded-gate-gaming-retry}
-      - {trait: fix-wrong-gate-separately}          # T5: follows sealed row 2026-11-06-batch-p1:255, fixes a wrong gate in its own change within authority, or else reports it; logged in .repo-context/unit-kinds.md §5
+      - {trait: fix-wrong-gate-separately}          # T5: follows sealed row 2026-11-06-batch-p1:255, fixes a wrong gate in its own change within authority, or else reports it; logged in .repo-context/unit-kinds.md (if present) §5
       - {trait: three-value-verdict}
       - {trait: no-hidden-negatives}
     calls: [{to: "skill:delegation", when: a unit goes to a worker}, {to: "skill:review", when: a delegated unit's judge is a critic}]

@@ -43,6 +43,7 @@ from curation.registry.loaders import (
     load_ledger,
     load_traits,
     record_path,
+    routes_text,
     skill_description,
 )
 from curation.registry.models import Event
@@ -828,12 +829,14 @@ def build_router(
         if u["kind"] == "principle"
     )
     pb_id = {name: book.holder for name, book in playbooks.items()}
+    # The repo's own route lines (`routes.md`) route wherever they stand.
+    routes = routes_text(cfg)
 
     pb_lines = {
         m.group(1): m.group(2)
         for m in re.finditer(
             r"^- `playbooks/([a-z0-9-]+)\.md`: (.+)$",
-            _section(router_text, "Playbooks"),
+            _section(router_text, "Playbooks") + "\n" + routes,
             re.MULTILINE,
         )
     }
@@ -841,12 +844,16 @@ def build_router(
         {"name": m.group(1), "text": m.group(2), "unit": PRINCIPLE_PREFIX + m.group(1)}
         for m in re.finditer(
             r"^- `principles/([a-z0-9-]+)\.md`: (.+)$",
-            _section(router_text, "Principles"),
+            _section(router_text, "Principles") + "\n" + routes,
             re.MULTILINE,
         )
     ]
     situations = []
-    for line in _section(router_text, "Skills by situation").splitlines():
+    for line in (
+        _section(router_text, "Skills by situation")
+        + "\n"
+        + _section(routes, "Skills by situation")
+    ).splitlines():
         cols = [c.strip() for c in line.strip().strip("|").split("|")]
         if (
             len(cols) == 2

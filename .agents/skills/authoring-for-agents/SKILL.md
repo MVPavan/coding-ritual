@@ -18,6 +18,10 @@ fact the agent cannot infer reliably. Remove generic advice that adds no behavio
 | Explicit human entrypoint | Manual skill or thin alias |
 | Substantial material used by one branch | Conditional reference |
 | Deterministic enforcement | A hook, check or script: propose a new one before writing a prose rule, and build it where authorized |
+| A fact about this repository (paths, commands, conventions) | An overlay file under `.repo-context/`, never an edit to a shipped unit |
+| A repository-specific variant of a shipped unit | A repo-owned unit with its own name whose description says to use it instead of the shipped one, recorded in `mvp-mode/routes.md` as `` - Replaces `<old>` with `<new>` (baseline <sha256>) ``, the baseline being the old unit's digest when it was copied |
+| A new job no shipped unit covers | A repo-owned unit with a name no shipped unit uses |
+| A change useful beyond this repository | A pull request to the `upstream` in `.repo-context/harness-settings.txt`, written without this repository's specifics and aimed at that harness's root skills, never its plugin folder; open it only on the owner's word |
 
 Once a check enforces a rule, replace any instruction that restated the rule
 with a pointer to the check.

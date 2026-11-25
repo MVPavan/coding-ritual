@@ -37,7 +37,7 @@ pick no side while gathering.
 4. **Sources.** Search for motivation in commit messages (always), Beads, decision
    records, docs, inline markers, changelogs, tests and co-changed files. When a
    commit you trace links a pull request, read `references/pull-requests.md` and
-   follow it. Then read `.repo-context/evidence-sources.md`: for each outside source
+   follow it. Then read `.repo-context/evidence-sources.md` (if present): for each outside source
    marked `have`, follow its section of `references/outside-sources.md`; for each
    `alternative`, search the alternative instead; each `not here` is a known coverage
    gap. When a warehouse, observability or error tracker is `have` or `alternative`,

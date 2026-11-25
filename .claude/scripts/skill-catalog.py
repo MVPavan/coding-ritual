@@ -19,11 +19,29 @@ audit — so this script generates the mechanical part and lints the rest.
       and fenced examples excluded (unit-kinds R3); if any /name reference in any
       shipped text file under a skill folder (*.md, *.sh, *.py, *.yaml —
       references, scripts, assets included) resolves to no installed skill and
-      no ALLOWED_SLASHES entry; if any `.claude/...` path token in those same
-      files names nothing on disk under the repo root (placeholder/glob tokens
-      are skipped); or if any skill's `agents/openai.yaml` is missing or its
-      `policy.allow_implicit_invocation` disagrees with the SKILL.md
-      `disable-model-invocation` flag (the Codex twin of that flag).
+      no ALLOWED_SLASHES entry; if any `.claude/`, `.agents/` or
+      `.repo-context/` path token in those same files names nothing
+      (placeholder/glob tokens and a token followed by `(if present)` are
+      skipped), or any backticked `playbooks/...` or `principles/...` path
+      (relative to the router's folder, wherever it is written) names nothing;
+      if a backticked path in the router's `routes.md` names nothing, or a
+      `Replaces` line there (baseline a 64-hex sha256) names no installed skill
+      entry point or playbook or principle file; or if any skill's
+      `agents/openai.yaml` is missing or its `policy.allow_implicit_invocation`
+      disagrees with the SKILL.md `disable-model-invocation` flag (the Codex
+      twin of that flag). `routes.md` route lines count as router entries.
+      Tokens under `.agents/skills/` or `.claude/skills/` resolve against
+      --skills-dir; other tokens against --root, or with `--inventory <file>`
+      (one installed repo path per line) against that list only, where a
+      directory token exists when it is a parent of some listed path.
+  --pointers-only
+      Only the slash, path and principle references and `routes.md` (no
+      generated-section, router-entry or sidecar checks), for a repo whose own
+      skills make the shipped catalog stale. A reference to a `Replaces` old
+      name resolves only when its new name does, a file beneath the old unit
+      only when the corresponding file beneath the new one exists, and each
+      `/old` call or old path in a repo-owned file (`repo-owned` in
+      `.repo-context/harness-settings.txt`) is listed for local migration.
   --write
       Regenerate everything below the marker line and every skill's
       `agents/openai.yaml` policy block (an existing `interface:` block is
@@ -56,7 +74,7 @@ from __future__ import annotations
 import argparse
 import difflib
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 MARKER = "<!-- generated:skill-catalog -->"
@@ -66,6 +84,9 @@ CATALOG_REL = ROUTER_DIR / "references" / "catalog.md"  # generated below MARKER
 PLAYBOOKS_REL = ROUTER_DIR / "playbooks"
 PRINCIPLES_REL = ROUTER_DIR / "principles"
 PRINCIPLE_PREFIX = "principle-"
+ROUTES_REL = ROUTER_DIR / "routes.md"  # repo-owned, never shipped; optional
+SETTINGS_REL = Path(".repo-context") / "harness-settings.txt"
+SKILL_TREE_PREFIXES = (".agents/skills/", ".claude/skills/")
 WRITE_CMD = "uv run python .claude/scripts/skill-catalog.py --write"
 
 # Slash tokens that legitimately resolve outside .claude/skills. One-word
@@ -110,9 +131,13 @@ SLASH_REF = re.compile(
 # skipped rather than half-matched; `:NN` line suffixes and `#fragments` end
 # the token naturally. Trailing sentence periods are stripped afterwards.
 CLAUDE_PATH = re.compile(
-    r"(?<![\w/~])((?:\.claude|\.repo-context|\.agents/skills)/[\w./\-<>*{}…]*)"
+    r"(?<![\w/~])((?:\.claude|\.repo-context|\.agents)/[\w./\-<>*{}…]*)"
 )
 PLACEHOLDER_MARKS = ("<", ">", "*", "{", "}", "…", "...")
+# A token followed by this, after its closing backtick or quote, or by a
+# trailing `#` comment that is exactly this, is an intentionally conditional
+# reference; a comment that only starts with it conditions something else.
+IF_PRESENT = re.compile(r"[`\"']?\s*(?:\(if present\)|#\s*\(if present\)\s*$)")
 
 # A backticked bare skill/command name, as the hand-owned router table uses.
 BARE_NAME = re.compile(r"`([a-z][a-z0-9-]*)`")
@@ -310,8 +335,9 @@ def slash_refs(path: Path) -> list[tuple[int, str]]:
 
 def claude_path_refs(path: Path) -> list[tuple[int, str]]:
     """(line number, token) for every checkable `.claude/`, `.repo-context/` or
-    `.agents/skills/` token in the file. Placeholder/glob tokens (`<name>`, `*`,
-    `{a,b}`, `…`, `...`) are not checkable and are omitted."""
+    `.agents/` token in the file. Placeholder/glob tokens (`<name>`, `*`,
+    `{a,b}`, `…`, `...`) are not checkable and a token followed by
+    `(if present)` is conditional; both are omitted."""
     refs: list[tuple[int, str]] = []
     for lineno, line in enumerate(
         path.read_text(encoding="utf-8").splitlines(), start=1
@@ -320,8 +346,59 @@ def claude_path_refs(path: Path) -> list[tuple[int, str]]:
             token = match.group(1).rstrip(".")
             if any(mark in token for mark in PLACEHOLDER_MARKS):
                 continue
+            if IF_PRESENT.match(line, match.end()):
+                continue
             refs.append((lineno, token))
     return refs
+
+
+@dataclass(frozen=True)
+class Resolver:
+    """Where a path token must exist: skill-tree tokens in the selected skills
+    directory, others under the repo root or, given one, in an inventory of
+    installed repo paths."""
+
+    root: Path
+    skills_dir: Path
+    inventory: frozenset[str] | None = None
+
+    def exists(self, token: str) -> bool:
+        for prefix in SKILL_TREE_PREFIXES:
+            if token.startswith(prefix) or token == prefix.rstrip("/"):
+                return (self.skills_dir / token[len(prefix) :]).exists()
+        if self.inventory is None:
+            return (self.root / token).exists()
+        want = token.rstrip("/")
+        return want in self.inventory or any(
+            listed.startswith(want + "/") for listed in self.inventory
+        )
+
+    def where(self) -> str:
+        if self.inventory is None:
+            return "nothing on disk under the repo root or the skills directory"
+        return "not in the inventory or the skills directory"
+
+
+def read_inventory(path: Path) -> frozenset[str]:
+    """One installed repo path per line, normalized (no `./`, no trailing `/`)."""
+    return frozenset(
+        line.strip().removeprefix("./").rstrip("/")
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    )
+
+
+def read_settings(root: Path) -> dict[str, list[str]]:
+    """`.repo-context/harness-settings.txt` as {key: [value, ...]}; each line is
+    `key<TAB>value`. Absent means empty."""
+    path = root / SETTINGS_REL
+    settings: dict[str, list[str]] = {}
+    if path.is_file():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            key, sep, value = line.partition("\t")
+            if sep and key.strip() and not key.startswith("#"):
+                settings.setdefault(key.strip(), []).append(value.strip())
+    return settings
 
 
 NEGATION_MARKERS = ("Never trigger", "Do NOT")
@@ -452,7 +529,7 @@ def unresolved_names(path: Path, text: str, known: set[str], root: Path) -> list
         " (hand-owned) — no installed skill"
         for lineno, line in enumerate(text.splitlines(), start=1)
         for name in (m.group(1) for m in BARE_NAME.finditer(line))
-        # principle_citation_failures lints these, in every shipped file.
+        # PointerCheck lints these, in every shipped file.
         if name not in known and not name.startswith(PRINCIPLE_PREFIX)
     ]
 
@@ -460,31 +537,6 @@ def unresolved_names(path: Path, text: str, known: set[str], root: Path) -> list
 def installed_principles(skills_dir: Path) -> set[str]:
     """Each principle's file name; `principle-<stem>` is the unit's name."""
     return {p.name for p in (skills_dir / PRINCIPLES_REL).glob("*.md")}
-
-
-def principle_citation_failures(
-    skills: list[Surface], skills_dir: Path, root: Path
-) -> tuple[list[str], int]:
-    """(failures, resolved count) for backticked `principle-<name>` citations."""
-    names = {
-        PRINCIPLE_PREFIX + Path(name).stem for name in installed_principles(skills_dir)
-    }
-    failures: list[str] = []
-    resolved = 0
-    for surface in skills:
-        for shipped in shipped_text_files(surface):
-            text = shipped.read_text(encoding="utf-8")
-            for lineno, line in enumerate(text.splitlines(), start=1):
-                for match in PRINCIPLE_CITATION.finditer(line):
-                    if match.group(1) in names:
-                        resolved += 1
-                    else:
-                        failures.append(
-                            f"unresolved principle `{match.group(1)}` at"
-                            f" {_rel(shipped, root)}:{lineno} — no"
-                            f" {PRINCIPLES_REL}/{match.group(1).removeprefix(PRINCIPLE_PREFIX)}.md"
-                        )
-    return failures, resolved
 
 
 # The router's Playbooks and Principles sections hold one list item per unit:
@@ -508,22 +560,7 @@ ROUTE_SECTIONS = {
 
 def routed_text(router_text: str) -> str:
     """Router text with comments and fenced examples removed."""
-    kept: list[str] = []
-    fence = ""
-    for line in HTML_COMMENT.sub("", router_text).splitlines():
-        if fence:
-            stripped = line.strip()
-            if (
-                len(line) - len(line.lstrip(" ")) <= 3
-                and stripped.startswith(fence)
-                and not stripped.strip(fence[0])
-            ):
-                fence = ""
-        elif opened := FENCE_OPEN.match(line):
-            fence = opened.group(1)
-        else:
-            kept.append(line)
-    return "\n".join(kept) + "\n"
+    return "\n".join(masked_lines(router_text)) + "\n"
 
 
 def route_entries(router_text: str) -> tuple[dict[str, list[str]], list[str]]:
@@ -557,15 +594,343 @@ def route_entries(router_text: str) -> tuple[dict[str, list[str]], list[str]]:
     return entries, failures
 
 
+# --- routes.md: the repo's own route lines and replacement mapping ----------
+#   - `playbooks/<name>.md`: <the request it fits>     (also principles/)
+#   - Replaces `<old unit or path>` with `<new unit or path>` (baseline <sha256>)
+REPLACES_LINE = re.compile(
+    r"^- Replaces `([^`]+)` with `([^`]+)` \(baseline [0-9a-f]{64}\)\s*$"
+)
+UNIT_FILE = re.compile(r"mvp-mode/(?:playbooks|principles)/[a-z0-9][a-z0-9-]*\.md")
+# A path relative to a skill's folder or, failing that, the router's, as the
+# router and its callers write a playbook or principle: `playbooks/<name>.md`,
+# `principles/<name>/...`; a `:18` or `:18-20` citation suffix is not part of it.
+ROUTER_RELATIVE = re.compile(r"((?:playbooks|principles)/\S*?)(?::\d+(?:-\d+)?)?")
+
+
+@dataclass(frozen=True)
+class Unit:
+    """A `Replaces` operand: its path relative to the skills directory (a
+    skill's folder, or a playbook or principle file) and, for a skill, the
+    declared name a slash call uses."""
+
+    rel: str
+    name: str | None = None
+
+
+def parse_unit(operand: str, skills: list[Surface]) -> Unit:
+    """An operand as one identity, whichever way it is written: a skill by its
+    declared name, folder or entry point (`<skill>/SKILL.md`, bare or under a
+    skill tree); a principle as `principle-<name>`, `principles/<name>.md` or
+    its skill-tree path; a playbook by either path."""
+    if "/" not in operand and operand.startswith(PRINCIPLE_PREFIX):
+        stem = operand.removeprefix(PRINCIPLE_PREFIX)
+        return Unit(str(PRINCIPLES_REL / f"{stem}.md"))
+    if "/" not in operand:
+        folder = next(
+            (s.path.parent.name for s in skills if s.name == operand), operand
+        )
+        return Unit(folder, operand)
+    rel = operand.rstrip("/")
+    for prefix in SKILL_TREE_PREFIXES:
+        if rel.startswith(prefix):
+            rel = rel[len(prefix) :]
+            break
+    else:
+        if rel.startswith(("playbooks/", "principles/")):
+            rel = str(ROUTER_DIR / rel)
+    parts = rel.split("/")
+    if len(parts) == 2 and parts[1] == "SKILL.md":
+        rel = parts[0]
+    if "/" in rel:
+        return Unit(rel)
+    declared = {s.path.parent.name: s.name for s in skills}
+    return Unit(rel, declared.get(rel, rel))
+
+
+def unit_installed(unit: Unit, skills_dir: Path, skills: list[Surface]) -> bool:
+    """An installed unit's entry point: a loaded skill declaring the name, in
+    that folder, or a regular playbook or principle file."""
+    if unit.name is not None:
+        return any(
+            s.name == unit.name and s.path.parent.name == unit.rel for s in skills
+        )
+    return bool(UNIT_FILE.fullmatch(unit.rel)) and (skills_dir / unit.rel).is_file()
+
+
+@dataclass(frozen=True)
+class Replacement:
+    old: str
+    new: str
+    old_unit: Unit
+    new_unit: Unit
+    new_resolves: bool
+    lineno: int  # in `routes.md`; its operands are not ordinary references
+
+    @staticmethod
+    def _base(rel: str) -> str:
+        """The folder a unit's own files sit in: a skill's folder, or a
+        playbook's or principle's companion folder (its path without `.md`)."""
+        return rel.removesuffix(".md") if UNIT_FILE.fullmatch(rel) else rel
+
+    def covers(self, rel: str) -> bool:
+        old = self.old_unit.rel
+        return rel == old or rel.startswith(self._base(old) + "/")
+
+    def resolves(self, rel: str, skills_dir: Path) -> bool:
+        """The old unit resolves when its replacement does; a file beneath it
+        only when the corresponding file beneath the new unit exists."""
+        if not self.new_resolves:
+            return False
+        if rel == self.old_unit.rel:
+            return True
+        old, new = self._base(self.old_unit.rel), self._base(self.new_unit.rel)
+        return (skills_dir / (new + rel[len(old) :])).exists()
+
+    def call_resolves(self) -> bool:
+        """A `/old` call resolves only to a skill the slash check knows."""
+        return self.new_resolves and self.new_unit.name is not None
+
+
+def read_routes(
+    skills_dir: Path, root: Path, skills: list[Surface]
+) -> tuple[dict[str, list[str]], list[Replacement], list[str]]:
+    """({section: [target, ...]}, replacements, failures) from `routes.md`.
+    Every backticked path there must resolve, except the operands of a
+    `Replaces` line and router-relative paths, which `cmd_check` resolves
+    through the mapping."""
+    entries: dict[str, list[str]] = {name: [] for name in ROUTE_SECTIONS}
+    replacements: list[Replacement] = []
+    failures: list[str] = []
+    path = skills_dir / ROUTES_REL
+    if not path.is_file():
+        return entries, replacements, failures
+    where = _rel(path, root)
+    lines = masked_lines(path.read_text(encoding="utf-8"))
+    for lineno, line in enumerate(lines, start=1):
+        spans = [m.group(1) for m in CODE_SPAN.finditer(line)]
+        if line.startswith("- Replaces"):
+            match = REPLACES_LINE.match(line)
+            if not match:
+                failures.append(
+                    f"{where}: not `- Replaces `<old>` with `<new>` (baseline <sha256>)` — {line!r}"
+                )
+                continue
+            old, new = match.groups()
+            new_unit = parse_unit(new, skills)
+            ok = unit_installed(new_unit, skills_dir, skills)
+            if not ok:
+                failures.append(
+                    f"{where}: Replaces `{old}` with `{new}` — `{new}` names nothing installed"
+                )
+            replacements.append(
+                Replacement(old, new, parse_unit(old, skills), new_unit, ok, lineno)
+            )
+            continue
+        if (entry := ROUTE_ENTRY.match(line)) and entry.group(2):
+            for name, form in ROUTE_SECTIONS.items():
+                if form.fullmatch(entry.group(1)):
+                    entries[name].append(entry.group(1))
+        for span in spans:
+            if (
+                "/" not in span
+                or any(c.isspace() for c in span)
+                or any(mark in span for mark in PLACEHOLDER_MARKS)
+                or CLAUDE_PATH.fullmatch(span)  # linted with every shipped file
+                or ROUTER_RELATIVE.fullmatch(span)  # likewise, through the mapping
+            ):
+                continue
+            if not (
+                (skills_dir / ROUTER_DIR / span).exists()
+                or (skills_dir / span).exists()
+            ):
+                failures.append(
+                    f"dead path {span} at {where} — nothing in the skills directory"
+                )
+    return entries, replacements, failures
+
+
+def replacement_for(rel: str, replacements: list[Replacement]) -> Replacement | None:
+    return next((item for item in replacements if item.covers(rel)), None)
+
+
+def masked_lines(text: str) -> list[str]:
+    """The text's lines with comments and fenced examples blanked, numbering
+    kept."""
+    text = HTML_COMMENT.sub(lambda m: "\n" * m.group(0).count("\n"), text)
+    kept: list[str] = []
+    fence = ""
+    for line in text.splitlines():
+        if fence:
+            stripped = line.strip()
+            if (
+                len(line) - len(line.lstrip(" ")) <= 3
+                and stripped.startswith(fence)
+                and not stripped.strip(fence[0])
+            ):
+                fence = ""
+            kept.append("")
+        elif opened := FENCE_OPEN.match(line):
+            fence = opened.group(1)
+            kept.append("")
+        else:
+            kept.append(line)
+    return kept
+
+
+def router_path_refs(path: Path) -> list[tuple[int, str]]:
+    """(line number, path) for every backticked router-relative path outside
+    comments and fenced examples, citation suffix removed; placeholder spans
+    and spans followed by `(if present)` are omitted."""
+    refs: list[tuple[int, str]] = []
+    for lineno, line in enumerate(
+        masked_lines(path.read_text(encoding="utf-8")), start=1
+    ):
+        for match in CODE_SPAN.finditer(line):
+            ref = ROUTER_RELATIVE.fullmatch(match.group(1))
+            if (
+                ref
+                and not any(mark in ref.group(1) for mark in PLACEHOLDER_MARKS)
+                and not IF_PRESENT.match(line, match.end())
+            ):
+                refs.append((lineno, ref.group(1)))
+    return refs
+
+
+@dataclass(frozen=True)
+class Ref:
+    """One reference in a shipped file, resolved: `head` and `why` make its
+    failure message."""
+
+    lineno: int
+    token: str
+    kind: str  # "slash", "path" or "principle"
+    ok: bool
+    swap: Replacement | None
+    head: str
+    why: str
+
+
+@dataclass
+class PointerCheck:
+    """Resolves every reference in shipped files one way: a skill-tree path
+    through the `Replaces` mapping when one covers it, else on disk; a slash
+    call through the mapping, else by declared name."""
+
+    skills_dir: Path
+    resolver: Resolver
+    known: set[str]
+    swaps: list[Replacement]
+    used_slashes: set[str] = field(default_factory=set)
+    used_paths: set[str] = field(default_factory=set)
+
+    def tree_path(self, rel: str) -> tuple[bool, Replacement | None]:
+        swap = replacement_for(rel, self.swaps)
+        if swap is not None:
+            return swap.resolves(rel, self.skills_dir), swap
+        return (self.skills_dir / rel).exists(), None
+
+    def slash(self, token: str) -> tuple[bool, Replacement | None]:
+        # `/mvp-plugin:adopt` is the plugin-namespaced form of `/adopt`:
+        # resolve by the bare name so shipped skills may use either.
+        bare = token[1:].split(":", 1)[-1]
+        swap = next((r for r in self.swaps if r.old_unit.name == bare), None)
+        if swap is not None:
+            return swap.call_resolves(), swap
+        if bare in self.known:
+            return True, None
+        if token in ALLOWED_SLASHES:
+            self.used_slashes.add(token)
+            return True, None
+        return False, None
+
+    def shared_path(self, token: str) -> tuple[bool, Replacement | None]:
+        for prefix in SKILL_TREE_PREFIXES:
+            if token.startswith(prefix):
+                return self.tree_path(token[len(prefix) :].rstrip("/"))
+        if self.resolver.exists(token):
+            return True, None
+        if token in ALLOWED_PATHS:
+            self.used_paths.add(token)
+            return True, None
+        return False, None
+
+    def router_relative(self, span: str, home: str) -> tuple[bool, Replacement | None]:
+        """A skill's own companion first, then the router's folder."""
+        rel = span.rstrip("/")
+        if home != str(ROUTER_DIR) and (self.skills_dir / home / rel).exists():
+            return True, None
+        return self.tree_path(str(ROUTER_DIR / rel))
+
+    def refs(self, shipped: Path, home: str, skip: set[int]) -> list[Ref]:
+        """Every reference in the file, except on the `skip` lines."""
+        refs: list[Ref] = []
+        for lineno, token in slash_refs(shipped):
+            refs.append(
+                Ref(
+                    lineno,
+                    token,
+                    "slash",
+                    *self.slash(token),
+                    f"dead slash pointer {token}",
+                    "no installed skill or allowlist entry",
+                )
+            )
+        for lineno, token in claude_path_refs(shipped):
+            refs.append(
+                Ref(
+                    lineno,
+                    token,
+                    "path",
+                    *self.shared_path(token),
+                    f"dead path {token}",
+                    f"{self.resolver.where()}, and no allowlist entry",
+                )
+            )
+        for lineno, span in router_path_refs(shipped):
+            refs.append(
+                Ref(
+                    lineno,
+                    span,
+                    "path",
+                    *self.router_relative(span, home),
+                    f"dead path {span}",
+                    f"nothing under {home} or {ROUTER_DIR}",
+                )
+            )
+        text = shipped.read_text(encoding="utf-8")
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            for match in PRINCIPLE_CITATION.finditer(line):
+                name = match.group(1)
+                rel = str(PRINCIPLES_REL / f"{name.removeprefix(PRINCIPLE_PREFIX)}.md")
+                refs.append(
+                    Ref(
+                        lineno,
+                        name,
+                        "principle",
+                        *self.tree_path(rel),
+                        f"unresolved principle `{name}`",
+                        f"no {rel.removeprefix(str(ROUTER_DIR) + '/')}",
+                    )
+                )
+        return [ref for ref in refs if ref.lineno not in skip]
+
+
 def unreachable_units(
-    skills: list[Surface], skills_dir: Path, router_text: str, root: Path
+    skills: list[Surface],
+    skills_dir: Path,
+    router_text: str,
+    root: Path,
+    extra: dict[str, list[str]] | None = None,
 ) -> list[str]:
     """Principles, playbooks and the full catalog are reached only through the
-    router's always-loaded part (unit-kinds R3): each installed principle and
-    playbook needs an entry, each entry a target that exists, and the router
-    must point at its catalog — all outside comments and fenced examples."""
+    router's always-loaded part (unit-kinds R3) and `routes.md`: each installed
+    principle and playbook needs an entry, each entry a target that exists, and
+    the router must point at its catalog — all outside comments and fenced
+    examples."""
     router = _rel(skills_dir / ROUTER_REL, root)
     entries, failures = route_entries(router_text)
+    for name, targets in (extra or {}).items():
+        entries[name].extend(targets)
     # The pointer is a whole code span that resolves, from the router's folder,
     # to the catalog — not any text that merely contains its path.
     catalog = (skills_dir / CATALOG_REL).resolve()
@@ -610,24 +975,31 @@ def unreachable_units(
     return failures
 
 
-def cmd_check(root: Path, skills_dir: Path) -> int:
-    malformed = frontmatter_failures(root, skills_dir)
-    if malformed:
-        print(f"## skill-catalog check: {skills_dir}")
-        for failure in malformed:
-            print(f"FAIL {failure}")
-        return 1
-    skills = load_skills(skills_dir)
-    failures: list[str] = []
-    warnings: list[str] = []
+def repo_owned(path: Path, skills_dir: Path, owned: list[str]) -> bool:
+    rel = _rel(path, skills_dir)
+    return any(
+        rel == entry.rstrip("/") or rel.startswith(entry.rstrip("/") + "/")
+        for entry in owned
+    )
 
+
+def catalog_failures(
+    skills: list[Surface],
+    skills_dir: Path,
+    root: Path,
+    route_extra: dict[str, list[str]],
+) -> list[str]:
+    """The router's names and entries and the generated catalog section."""
+    failures: list[str] = []
     known = {s.name for s in skills}
     router = skills_dir / ROUTER_REL
     catalog = skills_dir / CATALOG_REL
     if router.is_file():
         router_text = router.read_text(encoding="utf-8")
         failures.extend(unresolved_names(router, router_text, known, root))
-        failures.extend(unreachable_units(skills, skills_dir, router_text, root))
+        failures.extend(
+            unreachable_units(skills, skills_dir, router_text, root, route_extra)
+        )
     else:
         failures.append(f"missing {_rel(router, root)}")
     if not catalog.is_file():
@@ -653,42 +1025,59 @@ def cmd_check(root: Path, skills_dir: Path) -> int:
             excerpt = "\n".join("    " + line for line in diff[:15])
             failures.append(f"stale generated section — run `{WRITE_CMD}`\n{excerpt}")
 
-    citation_failures, resolved_citations = principle_citation_failures(
-        skills, skills_dir, root
-    )
-    failures.extend(citation_failures)
+    return failures
 
-    used_allowlist: set[str] = set()
-    used_path_allowlist: set[str] = set()
-    resolved = 0
-    resolved_paths = 0
+
+def cmd_check(
+    root: Path,
+    skills_dir: Path,
+    inventory: frozenset[str] | None = None,
+    pointers_only: bool = False,
+) -> int:
+    malformed = frontmatter_failures(root, skills_dir)
+    if malformed:
+        print(f"## skill-catalog check: {skills_dir}")
+        for failure in malformed:
+            print(f"FAIL {failure}")
+        return 1
+    skills = load_skills(skills_dir)
+    failures: list[str] = []
+    warnings: list[str] = []
+    migrations: list[str] = []
+    resolver = Resolver(root, skills_dir, inventory)
+
+    route_extra, replacements, route_failures = read_routes(skills_dir, root, skills)
+    failures.extend(route_failures)
+    # Old names resolve through their replacement only in pointers-only mode,
+    # which is how an adopted repo checks its own tree.
+    swaps = replacements if pointers_only else []
+    owned = read_settings(root).get("repo-owned", []) if pointers_only else []
+    if not pointers_only:
+        failures.extend(catalog_failures(skills, skills_dir, root, route_extra))
+
+    check = PointerCheck(skills_dir, resolver, {s.name for s in skills}, swaps)
+    resolved = {"slash": 0, "path": 0, "principle": 0}
+    routes_file = skills_dir / ROUTES_REL
+    mapping = {item.lineno for item in replacements}
     for surface in skills:
+        home = _rel(surface.path.parent, skills_dir)
         for shipped in shipped_text_files(surface):
-            for lineno, token in slash_refs(shipped):
-                # `/mvp-plugin:adopt` is the plugin-namespaced form of `/adopt`:
-                # resolve by the bare name so shipped skills may use either.
-                bare = token[1:].split(":", 1)[-1]
-                if bare in known:
-                    resolved += 1
-                elif token in ALLOWED_SLASHES:
-                    used_allowlist.add(token)
-                    resolved += 1
+            is_routes = shipped == routes_file
+            migrate = not is_routes and repo_owned(shipped, skills_dir, owned)
+            for ref in check.refs(shipped, home, mapping if is_routes else set()):
+                if ref.swap is not None and migrate:
+                    migrations.append(
+                        f"{_rel(shipped, skills_dir)}:{ref.lineno} {ref.token}"
+                        f" — `{ref.swap.old}` is replaced by `{ref.swap.new}`"
+                    )
+                if ref.ok:
+                    resolved[ref.kind] += 1
                 else:
                     failures.append(
-                        f"dead slash pointer {token} at {_rel(shipped, root)}:{lineno}"
-                        " — no installed skill or allowlist entry"
+                        f"{ref.head} at {_rel(shipped, root)}:{ref.lineno} — {ref.why}"
                     )
-            for lineno, token in claude_path_refs(shipped):
-                if (root / token).exists():
-                    resolved_paths += 1
-                elif token in ALLOWED_PATHS:
-                    used_path_allowlist.add(token)
-                    resolved_paths += 1
-                else:
-                    failures.append(
-                        f"dead path {token} at {_rel(shipped, root)}:{lineno}"
-                        " — nothing on disk under the repo root, and no allowlist entry"
-                    )
+    used_allowlist, used_path_allowlist = check.used_slashes, check.used_paths
+    resolved_paths, resolved_citations = resolved["path"], resolved["principle"]
     warnings.extend(
         f"allowlist entry {token} ({ALLOWED_SLASHES[token]}) is no longer referenced — remove it"
         for token in sorted(set(ALLOWED_SLASHES) - used_allowlist)
@@ -697,9 +1086,10 @@ def cmd_check(root: Path, skills_dir: Path) -> int:
         f"path allowlist entry {token} ({ALLOWED_PATHS[token]}) is no longer referenced — remove it"
         for token in sorted(set(ALLOWED_PATHS) - used_path_allowlist)
     )
-    failures.extend(openai_yaml_failures(skills))
-    warnings.extend(trigger_phrase_warnings(skills))
-    warnings.extend(frontmatter_warnings(skills))
+    if not pointers_only:
+        failures.extend(openai_yaml_failures(skills))
+        warnings.extend(trigger_phrase_warnings(skills))
+        warnings.extend(frontmatter_warnings(skills))
 
     model_count = sum(1 for s in skills if not s.slash_only)
     print(f"## skill-catalog check: {skills_dir}")
@@ -707,16 +1097,22 @@ def cmd_check(root: Path, skills_dir: Path) -> int:
         f"{len(skills)} skills ({model_count} model-invocable, {len(skills) - model_count} slash-only)"
     )
     if not failures:
-        print("OK   generated section is current")
+        if not pointers_only:
+            print("OK   generated section is current")
         print(
-            f"OK   {resolved} slash references resolve ({len(used_allowlist)} allowlisted)"
+            f"OK   {resolved['slash']} slash references resolve ({len(used_allowlist)} allowlisted)"
         )
         print(
             f"OK   {resolved_paths} shared path references resolve"
             f" ({len(used_path_allowlist)} allowlisted)"
         )
         print(f"OK   {resolved_citations} principle citations resolve")
-        print(f"OK   {len(skills)} agents/openai.yaml sidecars match their frontmatter")
+        if not pointers_only:
+            print(
+                f"OK   {len(skills)} agents/openai.yaml sidecars match their frontmatter"
+            )
+    for migration in migrations:
+        print(f"MIGRATE {migration}")
     for warning in warnings:
         print(f"WARN {warning}")
     for failure in failures:
@@ -777,16 +1173,33 @@ def main(argv: list[str] | None = None) -> int:
         help="skills directory to catalog/lint (default: <root>/.agents/skills, the real copy that"
         " .claude/skills links to). The publish"
         " step points this at a plugin's skills/ so its shipped router lists only shipped skills;"
-        " `.claude/...` path tokens still resolve against --root",
+        " `.agents/skills/` and `.claude/skills/` tokens resolve against it, others against --root",
+    )
+    parser.add_argument(
+        "--inventory",
+        type=Path,
+        default=None,
+        help="file of installed repo paths, one per line: tokens outside the skill tree"
+        " resolve against this list instead of --root",
+    )
+    parser.add_argument(
+        "--pointers-only",
+        action="store_true",
+        help="check only slash, path and principle references and routes.md",
     )
     args = parser.parse_args(argv)
+    if args.write and (args.pointers_only or args.inventory):
+        parser.error("--pointers-only and --inventory apply to --check only")
     root = args.root.resolve()
     skills_dir = (args.skills_dir or root / ".agents" / "skills").resolve()
     if not skills_dir.is_dir():
         raise SystemExit(
             f"no skills directory at {skills_dir} — pass --root or --skills-dir"
         )
-    return cmd_write(root, skills_dir) if args.write else cmd_check(root, skills_dir)
+    if args.write:
+        return cmd_write(root, skills_dir)
+    inventory = read_inventory(args.inventory) if args.inventory else None
+    return cmd_check(root, skills_dir, inventory, args.pointers_only)
 
 
 if __name__ == "__main__":

@@ -148,8 +148,8 @@ line.
 4. **Commit gate, at every commit point:** a build commit (step 3), a trunk
    merge (step 6) and babysit's publish (step 7). Stage the commit's paths,
    then run `python3 autopilot-full/commit_gate.py` (beside this file) from
-   the worktree. It reads the project's gate file,
-   `.repo-context/commit-gate.toml`, as the commit holds it, prints the range
+   the worktree. It reads the gate file the project supplies,
+   `.repo-context/commit-gate.toml` (if present), as the commit holds it, prints the range
    it judges as a `git diff` command, and runs staged-file checks first, then
    whole-project checks, cheapest first, stopping at the first failure.
    Exit 0: before committing, do each manual check it prints from the

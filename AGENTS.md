@@ -90,8 +90,8 @@ Deliver correct work with the smallest necessary change, done right the first ti
   gitignored `scratchpad/`. `reference_harnesses/` and `reference_tools/` are
   read-only submodules except for explicitly authorized submodule work or pointer
   updates; borrow only the smallest justified pattern.
-- The plugin's shipped set stays a strict subset of the root harness;
-  `publish-manifest.txt` and `template-exclude.txt` exclude lifecycle skills/rules.
+- The plugin's shipped set stays a strict subset of the root harness: the units
+  `repo-owned` in `.repo-context/harness-settings.txt` stay out of it.
 
 ### New session
 

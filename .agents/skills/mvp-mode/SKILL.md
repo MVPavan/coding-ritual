@@ -72,7 +72,6 @@ One line per playbook: `` - `playbooks/<name>.md`: <the request it fits> ``.
 - `playbooks/runtime-forensics.md`: a process running now (spinning, leaking, stuck) to diagnose from a live capture, with no fix wanted; an artifact captured earlier is trace-forensics.
 - `playbooks/session-pickup.md`: a request to resume work a prior session or agent left, where this conversation does not hold its state ("where were we", "pick up cr-abc"); a "continue" that it does hold just goes on, and a settled plan to run is implement.
 - `playbooks/shipping.md`: open pull requests (one or a stack) to merge, land or ship, each verified by a reviewer that did not write it; getting them merge-ready is babysit, and committing working-tree changes is `land`.
-- `playbooks/skill-curation.md`: adding, placing, reviewing, comparing, updating or retiring a skill of this repository, or reviewing an upstream harness release.
 - `playbooks/trace-forensics.md`: an artifact captured earlier (trace, profile, heap dump, core) to explain, with no fix wanted and nothing new to measure.
 - `playbooks/visual-parity.md`: a user-interface migration whose components must look the same afterwards, proven by image diff against a baseline; a UI idea to try out is `prototype`, and a structure change with nothing visible at stake is refactoring.
 - `playbooks/worktree-cleanup.md`: stale Git worktrees to audit and prune.
@@ -120,3 +119,7 @@ Only where a description alone would miss or collide.
 | A flow, protocol or race to check across every ordering and draw, or a TLA+ result to read | `statechart` |
 | A high-harm promise that tests rarely reach needs a formal check kept as a project skill | `/create-formal-verification-skill` (the person starts it) |
 | A project's formal check may no longer describe its code after changes made without it | `/maintain-formal-verification-skill` (the person starts it) |
+
+## This repository's routes
+
+If `routes.md` exists in this folder, read it too: its route lines use the formats above, and a `Replaces <old> with <new>` line means wherever any unit, router line or citation names `<old>` (a skill, a playbook path or a principle), use `<new>`.

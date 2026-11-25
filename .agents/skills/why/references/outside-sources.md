@@ -1,7 +1,7 @@
 # Outside sources
 
 Load from Gather step 4. A project records which outside systems it has in
-`.repo-context/evidence-sources.md`; this file says how to search each one. Every
+`.repo-context/evidence-sources.md` (if present); this file says how to search each one. Every
 search here is read-only: run queries and open records, but create, edit or
 acknowledge nothing, not even a saved query or a dashboard.
 

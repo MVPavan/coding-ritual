@@ -3,8 +3,9 @@
 
 usage: commit_gate.py [--repo <path>] [--config <path>] [--since <ref>]
 
-Reads the project's gate file (default `<repo>/.repo-context/commit-gate.toml`)
-and runs, in this order, stopping at the first failure:
+Reads the gate file the project supplies (default
+`<repo>/.repo-context/commit-gate.toml`; with none it refuses with exit 3 and
+says to write one) and runs, in this order, stopping at the first failure:
 
     [[staged]]   checks given the staged paths that match their globs
     [[project]]  whole-project checks, each due when a staged path matches its
@@ -90,7 +91,8 @@ from pathlib import Path
 PASS, FAIL, CONFIG, MISSING, REFUSED = 0, 1, 2, 3, 4
 SKIPPED = 77
 DIFF = "{diff}"
-DEFAULT_CONFIG = ".repo-context/commit-gate.toml"
+# The project supplies this file; the gate refuses with setup steps when it is absent.
+DEFAULT_CONFIG = ".repo-context/commit-gate.toml"  # (if present)
 DEFAULT_TIMEOUT = 1800.0
 SHOWN = 20
 
