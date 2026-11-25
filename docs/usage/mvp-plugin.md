@@ -116,10 +116,18 @@ fails `skill-catalog.py --check`), so neither tool auto-triggers them.
      baseline is the sha256 of the unit's stamp lines (`<path>\t<sha256>`, byte-sorted).
    - `--remove` (`scripts/lib/remove-harness.py`): removes from the settings files only
      entries whose fingerprint equals their wiring row (edited ones are kept and
-     reported); keeps every harness hook a remaining entry calls and what it calls in
+     reported); keeps every harness hook a remaining entry names by file name (an
+     explicit `.claude/hooks/<n>` keeps that file, another spelling such as
+     `cd .claude && bash hooks/<n>` every managed file of that name) and what it calls in
      turn (`bead-mirror-session.sh` → `.claude/hooks/bead-mirror.py`); deletes unedited
-     stamped files; removes the recorded created file, `.gitignore` block and view links,
-     keeping the Claude view while skills remain; drops the stamp and wiring record last.
+     stamped files except declared `repo-owned` units; removes the recorded created file,
+     `.gitignore` block and view links, keeping the Claude view while skills remain; drops
+     the stamp and wiring record last. Preflight refuses a recorded destination that is
+     not repository-relative or lies behind a linked folder.
+   - Install, `fork` and `--remove` share one workshop detector (`hp_is_workshop` in
+     `lib/common.sh`, reading `.gitmodules` with `git config`) and the installer's
+     `repo-owned` reader (`lib/repo-owned.sh`). A fork's skill operand is written
+     `<new>/SKILL.md` when the bare name would read as a principle (`principle-*`).
 
 Never overwritten by update: `.repo-context/*`, `.agents/skills/mvp-mode/routes.md`
 (repo routes and `Replaces <old> with <new>` lines, read by the shipped router),
