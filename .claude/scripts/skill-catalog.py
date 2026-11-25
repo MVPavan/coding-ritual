@@ -151,12 +151,12 @@ SLASH_REF = re.compile(
 # preceded by `/`, `~`, or a word char — so `~/.claude/...` (home dir) and
 # `<repo>/.claude/...` (another checkout) are out of scope. A leading `./` at
 # the same kind of boundary is the same repo-relative path: it is matched and
-# left out of the captured token. Captures
+# left out of the captured token (not after `=`, a URL query value). Captures
 # placeholder characters too, so a glob-ish token is recognised whole and
 # skipped rather than half-matched; `:NN` line suffixes and `#fragments` end
 # the token naturally. Trailing sentence periods are stripped afterwards.
 CLAUDE_PATH = re.compile(
-    r"(?:(?<![\w/~.])\./|(?<![\w/~]))"
+    r"(?:(?<![\w/~.=])\./|(?<![\w/~]))"
     r"((?:\.claude|\.codex|\.repo-context|\.agents)/[\w./\-<>*{}…]*)"
 )
 PLACEHOLDER_MARKS = ("<", ">", "*", "{", "}", "…", "...")

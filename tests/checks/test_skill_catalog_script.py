@@ -506,9 +506,10 @@ def test_dot_slash_pointer_is_the_same_path(
     paths stay out of scope."""
     _write(tmp_path / ".codex" / "README.md", "# Codex\n")
     skills = _tree(tmp_path, ROUTER)
-    _cite(f"# Example\n\nSee `{token}`, `~/.codex/x.md` and `other/.codex/y.md`.\n")(
-        skills
-    )
+    _cite(
+        f"# Example\n\nSee `{token}`, `~/.codex/x.md` and `other/.codex/y.md`.\n"
+        "[ex](https://example.test/view?path=./.codex/README.md)\n"
+    )(skills)
     listing = _inventory(tmp_path, ".codex/hooks.json")
     argv = [
         "--root",
