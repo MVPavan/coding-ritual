@@ -69,8 +69,8 @@ fails `skill-catalog.py --check`), so neither tool auto-triggers them.
      refuses when a skill name, compared case-insensitively, is in both a real
      `.claude/skills` and `.agents/skills`, or in either and the incoming payload,
      listing every clash.
-   - Initialises beads (adopt only, never with `--update`; `bd init` makes its own
-     commit) and points sync at origin.
+   - Initialises beads (adopt only, never with `--update`, and only on a clean working
+     tree, since `bd init` makes its own commit) and points sync at origin.
    - Legacy layout: each `.claude/project/x` moves to `.repo-context/x` only where that
      name is free; the old links `.codex/project` → `../.claude/project` and
      `.codex/rules/{core,python}` → `../../.claude/rules/{core,python}` are removed only
