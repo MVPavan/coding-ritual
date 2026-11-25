@@ -11,7 +11,9 @@ Under `.codex/`:
 - `agents/*.toml` — hand-maintained Codex twins of `.claude/agents/*.md`.
 - `config.toml`, `hooks.json`, `hooks/` — Codex wiring and hook scripts (real;
   the Python generated-edit guard differs from the bash one by payload schema).
+- `uv run python .claude/scripts/sync-codex.py --check` checks this view against
+  `.claude/` (shared hooks, hooks.json, the skill links); `--write` repairs it.
 
-Delegation and independent critique follow `.repo-context/delegation.md`.
+Delegation and independent critique follow the `delegation` skill.
 Distribution of this harness to other repos is the
 `mvp-plugin` (`mvp-harness/plugins/mvp-plugin`) — published with `/harness-publish`.

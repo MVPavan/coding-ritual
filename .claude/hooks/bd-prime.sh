@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # SessionStart hook: prime the agent with Beads workflow context (`bd prime --hook-json`).
 #
-# `bd` is installed under nvm, and Claude Code hooks do not reliably inherit the nvm
-# shims on PATH. This wrapper self-locates `bd` without any machine-local absolute path,
-# and degrades to a silent no-op if `bd` cannot be found (it must never fail the session).
+# `bd` may be installed under nvm, and agent lifecycle hooks do not always
+# inherit the nvm shims on PATH. This wrapper self-locates `bd` without any
+# machine-local absolute path, and degrades to a silent no-op if `bd` cannot be
+# found (it must never fail the session).
 
 # 1. Already on PATH? (hook inherited an nvm-active shell)
 if ! command -v bd >/dev/null 2>&1; then

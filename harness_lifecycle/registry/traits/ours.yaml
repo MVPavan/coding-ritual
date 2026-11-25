@@ -291,7 +291,7 @@ doc:.repo-context/coding-style.md:
   notes:
     strict-mypy: "ty is optional feedback and never replaces the mypy gate."
 doc:.repo-context/verification.md:
-  tree_hash: "75557338afe5946a5e45492ef42933c09c355a652a027887e017466a592e0d52"
+  tree_hash: "69d0c42fe2e2e6f83f5e16dd7ad2f7b301f15d592d8bd57a6fcc3740535c1a69"
   traits: [checks-by-changed-material, docs-only-suite-exemption, claim-evidence-table, partial-verification-report, diff-whitespace-check, doc-link-validation, historical-vs-active-guidance, syntax-checks-by-file-type, shell-lint-when-available, harness-code-suite, registry-check-on-change, tracker-cli-health, tracker-export-current, skill-catalog-check, guard-hook-block-proof, plugin-harness-or-unverified]
 ours:wake:
   tree_hash: "c75ab0ca50f5de35a9607e148c2c7090a3131b200e00c978278a862e9d083af8"
