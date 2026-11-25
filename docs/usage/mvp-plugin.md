@@ -100,6 +100,27 @@ fails `skill-catalog.py --check`), so neither tool auto-triggers them.
    `.repo-context/*` from repo reality and appends report-only automation
    recommendations.
 
+3. **Other modes of `install-harness.sh`** (the update skill shows how to run them):
+   - `--update --all <repo>...` (`scripts/update-all.sh`): updates each repo, one table
+     (repo, new, updated, kept, conflicts, retired, status), non-zero if any failed.
+   - `fork <unit> as <new>` (`scripts/lib/fork-unit.py`): preflights the whole name
+     namespace (`.agents/skills` entries including the repo's own, case-insensitively;
+     the stamp; the payload; tombstones; `repo-owned` entries; `routes.md` operands;
+     `~/.claude/skills` on this machine for a skill) and refuses before writing. Then it
+     stages a copy of the unit with its companions, renames a skill's `name`, prefixes
+     its description "Use instead of `<unit>` in this repository.", rewrites a
+     playbook's own `<unit>/` references, verifies the copy differs from the source only
+     by those rewrites, renames it into place, tombstones and deletes the original,
+     updates the Claude view, and appends `repo-owned <new>` and
+     `` - Replaces `<old>` with `<new>` (baseline <sha256>) `` to `routes.md`. The
+     baseline is the sha256 of the unit's stamp lines (`<path>\t<sha256>`, byte-sorted).
+   - `--remove` (`scripts/lib/remove-harness.py`): removes from the settings files only
+     entries whose fingerprint equals their wiring row (edited ones are kept and
+     reported); keeps every harness hook a remaining entry calls and what it calls in
+     turn (`bead-mirror-session.sh` → `.claude/hooks/bead-mirror.py`); deletes unedited
+     stamped files; removes the recorded created file, `.gitignore` block and view links,
+     keeping the Claude view while skills remain; drops the stamp and wiring record last.
+
 Never overwritten by update: `.repo-context/*`, `.agents/skills/mvp-mode/routes.md`
 (repo routes and `Replaces <old> with <new>` lines, read by the shipped router),
 `.harness-retired.txt`.
