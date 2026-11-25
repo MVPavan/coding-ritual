@@ -450,16 +450,79 @@ def test_inventory_rejects_pointers_the_install_lacks(
     a `..` out of the skills tree and a `.codex/` path the inventory lacks."""
     _write(tmp_path / ".codex" / "README.md", "# Codex\n")
     skills = _tree(tmp_path, ROUTER)
-    _cite(f"# Example\n\nSee `{plant}`, `.codex/hooks.json` and `.codex/skills/`.\n")(
-        skills
-    )
+    _cite(f"# Example\n\nSee `{plant}` and `.codex/hooks.json`.\n")(skills)
     listing = _inventory(tmp_path, ".codex/hooks.json")
-    argv = ["--root", str(tmp_path), "--skills-dir", str(skills), "--inventory", listing]
+    argv = [
+        "--root",
+        str(tmp_path),
+        "--skills-dir",
+        str(skills),
+        "--inventory",
+        listing,
+    ]
     code, out = _run(argv, capsys)
     assert code == 1, out
     assert f"dead path {plant}" in out
     assert "dead path .codex/hooks.json" not in out
-    assert "dead path .codex/skills/" not in out
+
+
+@pytest.mark.parametrize("home", ["migrate-claude-to-codex", "mvp-mode"])
+def test_foreign_repo_paths_belong_to_the_migrate_skill(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], home: str
+) -> None:
+    """The legacy `.codex/agents` token is allowed in the migrate skill's own
+    files only; the identical token in an ordinary shipped skill is dead."""
+    skills = _tree(tmp_path, ROUTER)
+    _write(
+        skills / "migrate-claude-to-codex" / "SKILL.md",
+        "---\nname: migrate-claude-to-codex\ndescription: Use to migrate.\n---\n",
+    )
+    cited = "Read `.codex/agents` in this repository before starting.\n"
+    if home == "mvp-mode":
+        _cite(f"# Example\n\n{cited}")(skills)
+    else:
+        _write(skills / home / "scripts" / "migrate.py", f"# {cited}")
+    listing = _inventory(tmp_path, ".codex/hooks.json")
+    argv = [
+        "--root",
+        str(tmp_path),
+        "--skills-dir",
+        str(skills),
+        "--inventory",
+        listing,
+    ]
+    _, out = _run(argv, capsys)
+    assert ("dead path .codex/agents " in out) == (home == "mvp-mode"), out
+
+
+@pytest.mark.parametrize(
+    ("token", "dead"),
+    [("./.codex/README.md", True), ("./.codex/hooks.json", False)],
+)
+def test_dot_slash_pointer_is_the_same_path(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], token: str, dead: bool
+) -> None:
+    """`./` at a token boundary is canonicalized away; `~/` and `<repo>/`
+    paths stay out of scope."""
+    _write(tmp_path / ".codex" / "README.md", "# Codex\n")
+    skills = _tree(tmp_path, ROUTER)
+    _cite(f"# Example\n\nSee `{token}`, `~/.codex/x.md` and `other/.codex/y.md`.\n")(
+        skills
+    )
+    listing = _inventory(tmp_path, ".codex/hooks.json")
+    argv = [
+        "--root",
+        str(tmp_path),
+        "--skills-dir",
+        str(skills),
+        "--inventory",
+        listing,
+    ]
+    code, out = _run(argv, capsys)
+    canonical = token.removeprefix("./")
+    assert (f"dead path {canonical} " in out) == dead, out
+    assert code == (1 if dead else 0), out
+    assert "x.md" not in out and "y.md" not in out, out
 
 
 # --- U8 review: staged install, Replaces targets, router-relative paths -----

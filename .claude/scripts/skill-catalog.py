@@ -109,18 +109,25 @@ ALLOWED_PATHS: dict[str, str] = {
     # Migration handles OTHER repos' rule dirs; local guidance is in .repo-context/.
     ".claude/rules": "foreign-repo",
     ".claude/rules/": "foreign-repo",
-    # Migration maps OTHER repos' agent definitions; this repo uses delegation roles.
-    ".claude/agents": "foreign-repo",
-    ".claude/agents/": "foreign-repo",
-    # migrate-claude-to-codex writes OTHER repos' legacy Codex layout (and its
-    # test fixture builds one); the template ships none of these.
-    ".codex/agents": "foreign-repo",
-    ".codex/agents/": "foreign-repo",
-    ".codex/project": "foreign-repo",
-    ".codex/skills": "foreign-repo",
-    ".codex/skills/": "foreign-repo",
-    ".codex/skills/example": "foreign-repo",
-    ".codex/skills/example/SKILL.md": "foreign-repo",
+}
+
+# Path tokens allowed only in one skill's own files: {skill folder: {token: reason}}.
+# --check warns when an entry stops being referenced, like ALLOWED_PATHS.
+SKILL_ALLOWED_PATHS: dict[str, dict[str, str]] = {
+    # migrate-claude-to-codex maps OTHER repos' agent definitions and writes their
+    # legacy Codex layout (its test fixture builds one); this repo uses delegation
+    # roles and the template ships none of these.
+    "migrate-claude-to-codex": {
+        ".claude/agents": "foreign-repo",
+        ".claude/agents/": "foreign-repo",
+        ".codex/agents": "foreign-repo",
+        ".codex/agents/": "foreign-repo",
+        ".codex/project": "foreign-repo",
+        ".codex/skills": "foreign-repo",
+        ".codex/skills/": "foreign-repo",
+        ".codex/skills/example": "foreign-repo",
+        ".codex/skills/example/SKILL.md": "foreign-repo",
+    },
 }
 
 # Text files under a skill folder whose slash and path references are linted.
@@ -142,12 +149,15 @@ SLASH_REF = re.compile(
 # `.codex/...`, `.repo-context/...` or the canonical skill tree
 # `.agents/skills/...`, not
 # preceded by `/`, `~`, or a word char — so `~/.claude/...` (home dir) and
-# `<repo>/.claude/...` (another checkout) are out of scope. Captures
+# `<repo>/.claude/...` (another checkout) are out of scope. A leading `./` at
+# the same kind of boundary is the same repo-relative path: it is matched and
+# left out of the captured token. Captures
 # placeholder characters too, so a glob-ish token is recognised whole and
 # skipped rather than half-matched; `:NN` line suffixes and `#fragments` end
 # the token naturally. Trailing sentence periods are stripped afterwards.
 CLAUDE_PATH = re.compile(
-    r"(?<![\w/~])((?:\.claude|\.codex|\.repo-context|\.agents)/[\w./\-<>*{}…]*)"
+    r"(?:(?<![\w/~.])\./|(?<![\w/~]))"
+    r"((?:\.claude|\.codex|\.repo-context|\.agents)/[\w./\-<>*{}…]*)"
 )
 PLACEHOLDER_MARKS = ("<", ">", "*", "{", "}", "…", "...")
 # A token followed by this, after its closing backtick or quote, or by a
@@ -838,13 +848,14 @@ class PointerCheck:
     swaps: list[Replacement]
     used_slashes: set[str] = field(default_factory=set)
     used_paths: set[str] = field(default_factory=set)
+    used_skill_paths: set[tuple[str, str]] = field(default_factory=set)
 
     def tree_path(self, rel: str) -> tuple[bool, Replacement | None]:
         if self.resolver.inventory is not None:
             # An install holds only the skills tree: a path that normalizes
             # out of it (`..`) names nothing there, whatever the disk holds.
             rel = posixpath.normpath(rel or ".")
-            if rel == ".." or rel.startswith("../") or rel.startswith("/"):
+            if rel == ".." or rel.startswith(("../", "/")):
                 return False, None
         swap = replacement_for(rel, self.swaps)
         if swap is not None:
@@ -865,7 +876,7 @@ class PointerCheck:
             return True, None
         return False, None
 
-    def shared_path(self, token: str) -> tuple[bool, Replacement | None]:
+    def shared_path(self, token: str, home: str) -> tuple[bool, Replacement | None]:
         for prefix in SKILL_TREE_PREFIXES:
             if token.startswith(prefix):
                 return self.tree_path(token[len(prefix) :].rstrip("/"))
@@ -884,6 +895,10 @@ class PointerCheck:
             return True, None
         if token in ALLOWED_PATHS:
             self.used_paths.add(token)
+            return True, None
+        skill = home.split("/", 1)[0]
+        if token in SKILL_ALLOWED_PATHS.get(skill, {}):
+            self.used_skill_paths.add((skill, token))
             return True, None
         return False, None
 
@@ -914,7 +929,7 @@ class PointerCheck:
                     lineno,
                     token,
                     "path",
-                    *self.shared_path(token),
+                    *self.shared_path(token, home),
                     f"dead path {token}",
                     f"{self.resolver.where()}, and no allowlist entry",
                 )
@@ -1119,6 +1134,12 @@ def cmd_check(
         f"path allowlist entry {token} ({ALLOWED_PATHS[token]}) is no longer referenced — remove it"
         for token in sorted(set(ALLOWED_PATHS) - used_path_allowlist)
     )
+    warnings.extend(
+        f"path allowlist entry {token} ({reason}) for {skill} is no longer referenced — remove it"
+        for skill, entries in sorted(SKILL_ALLOWED_PATHS.items())
+        for token, reason in sorted(entries.items())
+        if (skill, token) not in check.used_skill_paths
+    )
     if not pointers_only:
         failures.extend(openai_yaml_failures(skills))
         warnings.extend(trigger_phrase_warnings(skills))
@@ -1137,7 +1158,7 @@ def cmd_check(
         )
         print(
             f"OK   {resolved_paths} shared path references resolve"
-            f" ({len(used_path_allowlist)} allowlisted)"
+            f" ({len(used_path_allowlist) + len(check.used_skill_paths)} allowlisted)"
         )
         print(f"OK   {resolved_citations} principle citations resolve")
         if not pointers_only:
