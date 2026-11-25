@@ -102,13 +102,16 @@ SLASH_REF = re.compile(
     r"(?!\.\w|[\w/-])"
 )
 
-# A repo-relative harness path token, backticked or bare: `.claude/...` not
+# A repo-relative harness path token, backticked or bare: `.claude/...`,
+# `.repo-context/...` or the canonical skill tree `.agents/skills/...`, not
 # preceded by `/`, `~`, or a word char — so `~/.claude/...` (home dir) and
 # `<repo>/.claude/...` (another checkout) are out of scope. Captures
 # placeholder characters too, so a glob-ish token is recognised whole and
 # skipped rather than half-matched; `:NN` line suffixes and `#fragments` end
 # the token naturally. Trailing sentence periods are stripped afterwards.
-CLAUDE_PATH = re.compile(r"(?<![\w/~])((?:\.claude|\.repo-context)/[\w./\-<>*{}…]*)")
+CLAUDE_PATH = re.compile(
+    r"(?<![\w/~])((?:\.claude|\.repo-context|\.agents/skills)/[\w./\-<>*{}…]*)"
+)
 PLACEHOLDER_MARKS = ("<", ">", "*", "{", "}", "…", "...")
 
 # A backticked bare skill/command name, as the hand-owned router table uses.
@@ -306,9 +309,9 @@ def slash_refs(path: Path) -> list[tuple[int, str]]:
 
 
 def claude_path_refs(path: Path) -> list[tuple[int, str]]:
-    """(line number, token) for every checkable `.claude/` or `.repo-context/` token in
-    the file. Placeholder/glob tokens (`<name>`, `*`, `{a,b}`, `…`, `...`) are
-    not checkable and are omitted."""
+    """(line number, token) for every checkable `.claude/`, `.repo-context/` or
+    `.agents/skills/` token in the file. Placeholder/glob tokens (`<name>`, `*`,
+    `{a,b}`, `…`, `...`) are not checkable and are omitted."""
     refs: list[tuple[int, str]] = []
     for lineno, line in enumerate(
         path.read_text(encoding="utf-8").splitlines(), start=1
@@ -771,13 +774,14 @@ def main(argv: list[str] | None = None) -> int:
         "--skills-dir",
         type=Path,
         default=None,
-        help="skills directory to catalog/lint (default: <root>/.claude/skills). The publish"
+        help="skills directory to catalog/lint (default: <root>/.agents/skills, the real copy that"
+        " .claude/skills links to). The publish"
         " step points this at a plugin's skills/ so its shipped router lists only shipped skills;"
         " `.claude/...` path tokens still resolve against --root",
     )
     args = parser.parse_args(argv)
     root = args.root.resolve()
-    skills_dir = (args.skills_dir or root / ".claude" / "skills").resolve()
+    skills_dir = (args.skills_dir or root / ".agents" / "skills").resolve()
     if not skills_dir.is_dir():
         raise SystemExit(
             f"no skills directory at {skills_dir} — pass --root or --skills-dir"

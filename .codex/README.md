@@ -1,12 +1,11 @@
 # .codex — the Codex view of this repo's harness
 
-Shared skills live in `.claude/`; repository guidance lives in `.repo-context/`.
+Shared skills live in `.agents/skills/`, where Codex discovers them directly;
+`.claude/skills` is a link to that folder for Claude. Every skill carries
+`agents/openai.yaml` with `policy.allow_implicit_invocation`, the Codex twin of
+`disable-model-invocation`. Repository guidance lives in `.repo-context/`.
 Under `.codex/`:
 
-- `skills/*` — symlinks to `../../.claude/skills/<name>` (every skill carries
-  `agents/openai.yaml` with `policy.allow_implicit_invocation`, the Codex twin of
-  `disable-model-invocation`). The `harness-*` curation skills and
-  `skills/in-progress/` are root-only and not linked.
 - `rules/default.rules` — native Codex command policy. Shared behavioral
   instructions live in `AGENTS.md`; conditional conventions live in `.repo-context/`.
 - `agents/*.toml` — hand-maintained Codex twins of `.claude/agents/*.md`.

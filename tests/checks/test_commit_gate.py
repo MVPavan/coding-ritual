@@ -622,3 +622,33 @@ def test_the_manual_checks_name_the_range_the_gate_judged(
     assert done.returncode == 0, done.stdout + done.stderr
     assert f"Inspect git diff {base} HEAD." in done.stdout
     assert tip in done.stdout
+
+
+@pytest.mark.parametrize("change", ["remove", "retarget"])
+@pytest.mark.parametrize("row_name", ["registry check", "skill catalog"])
+def test_losing_the_claude_skill_view_runs_the_skill_checks(
+    repo: Path, log: Path, change: str, row_name: str
+) -> None:
+    """`.claude/skills` links to the real tree in `.agents/skills`; removing or
+    retargeting that link must make the skill checks due, not only whitespace."""
+    skill = repo / ".agents/skills/tdd/SKILL.md"
+    skill.parent.mkdir(parents=True)
+    skill.write_text("---\nname: tdd\n---\n")
+    (repo / ".claude").mkdir()
+    (repo / ".claude/skills").symlink_to("../.agents/skills")
+    git(repo, "add", ".agents", ".claude")
+    git(repo, "commit", "-qm", "skills")
+    row = repo_row("project", row_name)
+    row["command"] = logger(log, "skills", 1)
+    row.pop("env", None)
+    write_gate(repo, [("project", row)])
+    if change == "remove":
+        git(repo, "rm", "-q", ".claude/skills")
+    else:
+        (repo / ".claude/skills").unlink()
+        (repo / ".claude/skills").symlink_to("../missing-skills")
+        git(repo, "add", ".claude/skills")
+    done = gate(repo)
+    assert done.returncode == 1, done.stdout + done.stderr
+    assert f"FAIL {row['name']}" in done.stdout
+    assert ran(log) == ["skills"]

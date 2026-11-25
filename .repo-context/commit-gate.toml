@@ -57,18 +57,18 @@ command = ["bd", "ready"]
 
 [[project]]
 name = "skill catalog current (skill-catalog.py --check)"
-when = [".claude/skills/*", ".claude/scripts/skill-catalog.py"]
+when = [".agents/skills/*", ".claude/skills", ".claude/skills/*", ".claude/scripts/skill-catalog.py"]
 command = ["uv", "run", "--frozen", "python", ".claude/scripts/skill-catalog.py", "--check"]
 
 [[project]]
 name = "registry check"
-when = ["harness_lifecycle/registry/*", ".claude/skills/*", "AGENTS.md", ".repo-context/*", "curation/*"]
+when = ["harness_lifecycle/registry/*", ".agents/skills/*", ".claude/skills", ".claude/skills/*", "AGENTS.md", ".repo-context/*", "curation/*"]
 command = ["uv", "run", "--frozen", "python", "harness_lifecycle/registry/registry.py", "check"]
 env = { PYTHONDONTWRITEBYTECODE = "1" }
 
 [[project]]
 name = "curation and skill-script suites"
-when = ["curation/*", "tests/curation/*", "tests/checks/*", ".claude/skills/*.py", ".claude/skills/*.sh", ".claude/hooks/*", ".claude/scripts/*"]
+when = ["curation/*", "tests/curation/*", "tests/checks/*", ".agents/skills/*.py", ".agents/skills/*.sh", ".claude/hooks/*", ".claude/scripts/*"]
 command = ["uv", "run", "--frozen", "python", "-m", "pytest", "-q", "-p", "no:cacheprovider", "tests/curation", "tests/checks"]
 env = { PYTHONDONTWRITEBYTECODE = "1" }
 

@@ -161,6 +161,7 @@ def copy_tree(
 
 def link_skills(repo: Path, *, apply: bool, report: Report) -> None:
     """Expose canonical skills without copying policy or overwriting destinations."""
+    shared = repo / ".agents" / "skills"
     source = repo / ".claude" / "skills"
     if not source.exists():
         report.skip(f"{source} not present")
@@ -171,6 +172,18 @@ def link_skills(repo: Path, *, apply: bool, report: Report) -> None:
         entrypoint = skill / "SKILL.md"
         legacy = skill / "SKILL.MD"
         if not entrypoint.is_file() and not legacy.is_file():
+            continue
+        counterpart = shared / skill.name
+        if (counterpart / "SKILL.md").is_file():
+            # Codex reads `.agents/skills` itself; a `.codex/skills` link would
+            # duplicate the skill, or shadow it when the content differs.
+            if skill.resolve() == counterpart.resolve():
+                report.skip(f"{skill} is {counterpart}; Codex reads it directly")
+            else:
+                report.warn(
+                    f"conflict: {skill} and {counterpart} are independent skills "
+                    "with one name; reconcile manually"
+                )
             continue
         target = repo / ".codex" / "skills" / skill.name
         if target.exists() or target.is_symlink():
@@ -458,10 +471,18 @@ def run_codex_discovery(repo: Path) -> tuple[bool, str]:
         check=False,
     )
     output = proc.stdout
-    markers = (f"{repo}/.codex/skills", ".codex/skills/")
-    if proc.returncode == 0 and any(marker in output for marker in markers):
-        return True, "codex discovery found repo-local .codex/skills"
-    return False, "codex discovery did not show repo-local .codex/skills"
+    # A skill path under this repository, absolute or as a whole repo-relative
+    # token; `<other-dir>/.agents/skills/...` belongs to another tree.
+    trees = r"\.(?:agents|codex)/skills(?![\w.-])"
+    local = re.compile(
+        rf"(?<![^\s\"'`(\[=:])(?:{re.escape(str(repo))}/|(?:\./)?){trees}"
+    )
+    if proc.returncode == 0 and local.search(output):
+        return True, "codex discovery found repo-local skills"
+    return (
+        False,
+        "codex discovery did not show repo-local .agents/skills or .codex/skills",
+    )
 
 
 def verify(args: argparse.Namespace) -> int:
@@ -487,8 +508,9 @@ def verify(args: argparse.Namespace) -> int:
             tomllib.loads(agent.read_text(encoding="utf-8"))
         except tomllib.TOMLDecodeError as exc:
             errors.append(f"{agent}: {exc}")
-    for skill in sorted((repo / ".codex" / "skills").glob("*/SKILL.md")):
-        errors.extend(validate_skill_frontmatter(skill))
+    for root in (repo / ".agents" / "skills", repo / ".codex" / "skills"):
+        for skill in sorted(root.glob("*/SKILL.md")):
+            errors.extend(validate_skill_frontmatter(skill))
     if not args.skip_codex:
         ok, message = run_codex_discovery(repo)
         if ok:

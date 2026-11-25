@@ -124,7 +124,9 @@ def _principles_catalog(cfg: RegistryConfig) -> Any:
 
 
 def build_ours(cfg: RegistryConfig) -> Any:
-    roots = [cfg.our_harness_root, cfg.codex_root] + sorted(
+    # `.agents` holds the real skill tree; `.claude/skills` is a view of it
+    # made of links, which the git-visible scan does not follow.
+    roots = [cfg.repo_root / ".agents", cfg.our_harness_root, cfg.codex_root] + sorted(
         cfg.repo_root.glob(cfg.plugins_glob)
     )
     catalogs: list[Any] = [_principles_catalog(cfg)]
@@ -138,7 +140,7 @@ def build_ours(cfg: RegistryConfig) -> Any:
                 catalog_playbooks=False,
             )
             catalogs.append(_drop_template_caps(cat))
-    return merge_catalogs("ours", "root .claude/.codex + plugins", catalogs)
+    return merge_catalogs("ours", "root .agents/.claude/.codex + plugins", catalogs)
 
 
 def _normalize_name(name: str) -> str:

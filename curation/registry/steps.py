@@ -361,6 +361,19 @@ def step_changes(old: Playbook | None, new: Playbook | None) -> list[StepChange]
 GIT_TIMEOUT = 15
 
 
+AGENTS_SKILLS = ".agents/skills"
+
+
+def _paths_at_revision(cfg: RegistryConfig, rel: str) -> list[str]:
+    """Where `rel` (a path under the `.claude/skills` view) is stored in a
+    commit: git reads the tree, never through the view's links, so the real
+    copy `.agents/skills/...` first, then the pre-migration `.claude/skills/...`."""
+    view = cfg.skills_dir.relative_to(cfg.repo_root).as_posix()
+    if view != AGENTS_SKILLS and rel.startswith(view + "/"):
+        return [AGENTS_SKILLS + rel[len(view) :], rel]
+    return [rel]
+
+
 def playbook_at(cfg: RegistryConfig, name: str, rev: str | None) -> Playbook | None:
     """The playbook at git revision `rev` (the working tree when None); None
     when the file is absent there. Raises SystemExit on a bad revision or an
@@ -390,12 +403,15 @@ def playbook_at(cfg: RegistryConfig, name: str, rev: str | None) -> Playbook | N
             )
             if check.returncode != 0:
                 raise SystemExit(f"{rev!r} is not a commit")
-            shown = subprocess.run(
-                ["git", "-C", root, "show", f"{rev}:{rel}"],
-                capture_output=True,
-                timeout=GIT_TIMEOUT,
-                check=False,
-            )
+            for path in _paths_at_revision(cfg, rel):
+                shown = subprocess.run(
+                    ["git", "-C", root, "show", f"{rev}:{path}"],
+                    capture_output=True,
+                    timeout=GIT_TIMEOUT,
+                    check=False,
+                )
+                if shown.returncode == 0:
+                    break
         except (OSError, subprocess.SubprocessError) as exc:
             raise SystemExit(f"git failed: {exc}") from exc
         if shown.returncode != 0:

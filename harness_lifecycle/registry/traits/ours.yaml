@@ -111,7 +111,7 @@ ours:land:
   tree_hash: "b440a07e143375a487076626d00cae2de6ba79310b62035e24f6089a3ca9a1e1"
   traits: [verified-work-only, own-path-partition, conventional-commit-title, commit-body-adds, commit-plan-without-authority]
 ours:migrate-claude-to-codex:
-  tree_hash: "cf4adcb8725e0df89d88b2e2950b9d279212b1f32b32a7c6af23f2c23318106b"
+  tree_hash: "820c67c5738946bebed31292e9892e9de40b27058fd2bf0aa5eab22b021c47a7"
   traits: [dry-run-default, skill-symlinking, destination-protection, command-conversion, agent-conversion, hook-conversion, config-scaffold, shared-policy-untouched, structural-verify, non-destructive, test-before-reliance]
 ours:model-council:
   tree_hash: "924c702a75b471cbfa3a3aed97e1860adb5a41740233bb0c192b705b9bd49876"

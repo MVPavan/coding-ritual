@@ -7,8 +7,8 @@ implements a Python workflow interpreter. `AGENTS.md` owns policy;
 | Area | Start here |
 |---|---|
 | Shared guidance and vocabulary | `.repo-context/` |
-| Skills and agent definitions | `.claude/skills/`, `.claude/agents/` |
-| Runtime integrations | `.claude/` hooks/settings; `.codex/` configuration, agents, hooks and skill symlinks; `.agents/` settings |
+| Skills and agent definitions | `.agents/skills/` (the real skill tree; `.claude/skills` is a link to it), `.claude/agents/` |
+| Runtime integrations | `.claude/` hooks/settings; `.codex/` configuration, agents and hooks; `.agents/` skills and settings |
 | Interpreter and tests | `workflow_interpreter/`, `tests/` |
 | Graphs and runtime examples | `workflows/`, `config/` |
 | Specs and decisions | `docs/specs/`, `docs/adr/`, `docs/decisions/` |

@@ -25,6 +25,25 @@ case "$mode" in
 esac
 
 git rev-parse --verify --quiet "$base" >/dev/null || { echo "bad SCOPE_BASE: $base" >&2; exit 2; }
+
+# `.claude/skills` is a link to the skill tree in `.agents/skills`; git tracks
+# the files only under `.agents/skills`. A literal path given through the Claude
+# view (bare, `./`, or absolute inside the worktree) becomes two literal
+# pathspecs: its canonical path, and the Claude path so a base from before the
+# migration still matches. Other arguments, and pathspec magic (`:(...)`), pass
+# through unchanged.
+top=$(git rev-parse --show-toplevel)
+paths=()
+for p in "$@"; do
+  rel=
+  case "$p" in :*) ;; *) rel=$(realpath -ms --relative-to="$top" -- "$p") ;; esac
+  case "$rel" in
+    .claude/skills | .claude/skills/*)
+      paths+=(":(top,literal)$rel" ":(top,literal).agents/skills${rel#.claude/skills}") ;;
+    *) paths+=("$p") ;;
+  esac
+done
+set -- ${paths[@]+"${paths[@]}"}
 mkdir -p "$dir"
 out="$dir/review-${label}.diff"
 snap="$dir/snap-${label}"

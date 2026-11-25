@@ -227,3 +227,25 @@ def test_broken_routes_fail(
     code, out = _check(tmp_path, router, capsys, after)
     assert code != 0, out
     assert expected in out, out
+
+
+@pytest.mark.parametrize("exists", [True, False])
+def test_canonical_skill_paths_are_checked(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], exists: bool
+) -> None:
+    """A `.agents/skills/...` reference must name a file on disk, like `.claude/...`."""
+    target = tmp_path / ".agents" / "skills" / "tdd" / "present.md"
+    target.parent.mkdir(parents=True)
+    target.write_text("# Present\n")
+    name = "present.md" if exists else "missing.md"
+    code, out = _check(
+        tmp_path,
+        ROUTER,
+        capsys,
+        _cite(f"# Example\n\nSee `.agents/skills/tdd/{name}`.\n"),
+    )
+    if exists:
+        assert code == 0, out
+    else:
+        assert code == 1, out
+        assert "dead path .agents/skills/tdd/missing.md" in out

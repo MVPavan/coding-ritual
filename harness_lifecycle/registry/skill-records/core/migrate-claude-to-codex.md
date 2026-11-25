@@ -33,6 +33,7 @@ No adopted lineage recorded.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-25` **update** (2026-11-25-agents-skills:002): Bead cr-e0a, unit U3. The helper decides per skill: no .codex/skills link for a Claude skill that is its .agents/skills counterpart (Codex reads that tree itse…
 - `2026-11-20` **update** (2026-11-20-glossary-rename:003): Owner ruling 2026-11-20 (conversation), glossary rename, bead cr-r2pa.3.3, following upstream mattpocock_skills #1120 (commit d80fa0f): the project glossary is…
 <!-- /registry:generated history -->
 
