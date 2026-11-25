@@ -87,6 +87,7 @@
     "2026-11-25-agents-skills.jsonl": "6591fa2ed6ae6b082866c9dff3aa51f7a8568b2d6fec2d360874835f586c4e82",
     "2026-11-25-codex-sync.jsonl": "606a97dbc363be91be25b0beb05a4f381ed8958b88a68e2f6d20411f05352ce1",
     "2026-11-25-repo-routes.jsonl": "b8cfb272765fed11f36e9de609845a4e7021cc3ee51194d1666a0d44d25613e1",
+    "2026-11-25-retire-agents.jsonl": "faaf735ab2dd250d3d8ef0c443342663278af737360bbd8f797c4943a2f7c404",
     "2026-11-25-shipped-neutrality.jsonl": "53592e10ac45d62484c01773e9c4e73ef2b9c9909daf0c9fe8f295931f4ffc31"
   },
   "round_order": [
@@ -176,7 +177,8 @@
     "2026-11-25-agents-skills.jsonl",
     "2026-11-25-codex-sync.jsonl",
     "2026-11-25-shipped-neutrality.jsonl",
-    "2026-11-25-repo-routes.jsonl"
+    "2026-11-25-repo-routes.jsonl",
+    "2026-11-25-retire-agents.jsonl"
   ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",

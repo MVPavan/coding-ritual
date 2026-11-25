@@ -7,7 +7,7 @@ implements a Python workflow interpreter. `AGENTS.md` owns policy;
 | Area | Start here |
 |---|---|
 | Shared guidance and vocabulary | `.repo-context/` |
-| Skills and agent definitions | `.agents/skills/` (the real skill tree; `.claude/skills` is a link to it), `.claude/agents/` |
+| Skills | `.agents/skills/` (the real skill tree; `.claude/skills` is a link to it); handoffs to other agents use the `delegation` skill's roles, not agent definitions |
 | Runtime integrations | `.claude/` hooks/settings; `.codex/` configuration, agents and hooks; `.agents/` skills and settings |
 | Interpreter and tests | `workflow_interpreter/`, `tests/` |
 | Graphs and runtime examples | `workflows/`, `config/` |

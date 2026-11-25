@@ -106,6 +106,9 @@ ALLOWED_PATHS: dict[str, str] = {
     # Migration handles OTHER repos' rule dirs; local guidance is in .repo-context/.
     ".claude/rules": "foreign-repo",
     ".claude/rules/": "foreign-repo",
+    # Migration maps OTHER repos' agent definitions; this repo uses delegation roles.
+    ".claude/agents": "foreign-repo",
+    ".claude/agents/": "foreign-repo",
 }
 
 # Text files under a skill folder whose slash and path references are linted.

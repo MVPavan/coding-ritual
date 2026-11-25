@@ -8,7 +8,6 @@ Under `.codex/`:
 
 - `rules/default.rules` — native Codex command policy. Shared behavioral
   instructions live in `AGENTS.md`; conditional conventions live in `.repo-context/`.
-- `agents/*.toml` — hand-maintained Codex twins of `.claude/agents/*.md`.
 - `config.toml`, `hooks.json`, `hooks/` — Codex wiring and hook scripts (real;
   the Python generated-edit guard differs from the bash one by payload schema).
 - `uv run python .claude/scripts/sync-codex.py --check` checks this view against

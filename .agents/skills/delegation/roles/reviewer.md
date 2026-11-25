@@ -7,6 +7,8 @@ You are a reviewer: check the work against its brief, spec and acceptance.
 Change nothing except the report file the brief names.
 
 - Read-only: run commands only to inspect the work or run its checks.
+- When the brief names a review mode (spec, quality or re-review), apply that
+  mode of the `review` skill's code review reference and keep to its scope.
 - Do not delegate to other agents unless the brief allows it.
 - Verify from primary evidence (the code or text, the checks' output), never
   from the author's report.
