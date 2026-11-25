@@ -19,7 +19,7 @@ audit — so this script generates the mechanical part and lints the rest.
       and fenced examples excluded (unit-kinds R3); if any /name reference in any
       shipped text file under a skill folder (*.md, *.sh, *.py, *.yaml —
       references, scripts, assets included) resolves to no installed skill and
-      no ALLOWED_SLASHES entry; if any `.claude/`, `.agents/` or
+      no ALLOWED_SLASHES entry; if any `.claude/`, `.codex/`, `.agents/` or
       `.repo-context/` path token in those same files names nothing
       (placeholder/glob tokens and a token followed by `(if present)` are
       skipped), or any backticked `playbooks/...` or `principles/...` path
@@ -33,7 +33,9 @@ audit — so this script generates the mechanical part and lints the rest.
       Tokens under `.agents/skills/` or `.claude/skills/` resolve against
       --skills-dir; other tokens against --root, or with `--inventory <file>`
       (one installed repo path per line) against that list only, where a
-      directory token exists when it is a parent of some listed path.
+      directory token exists when it is a parent of some listed path; with
+      an inventory a token is normalized first, and one whose `..` leaves the
+      skills tree or the repo names nothing.
   --pointers-only
       Only the slash, path and principle references and `routes.md` (no
       generated-section, router-entry or sidecar checks), for a repo whose own
@@ -73,6 +75,7 @@ from __future__ import annotations
 
 import argparse
 import difflib
+import posixpath
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -109,6 +112,15 @@ ALLOWED_PATHS: dict[str, str] = {
     # Migration maps OTHER repos' agent definitions; this repo uses delegation roles.
     ".claude/agents": "foreign-repo",
     ".claude/agents/": "foreign-repo",
+    # migrate-claude-to-codex writes OTHER repos' legacy Codex layout (and its
+    # test fixture builds one); the template ships none of these.
+    ".codex/agents": "foreign-repo",
+    ".codex/agents/": "foreign-repo",
+    ".codex/project": "foreign-repo",
+    ".codex/skills": "foreign-repo",
+    ".codex/skills/": "foreign-repo",
+    ".codex/skills/example": "foreign-repo",
+    ".codex/skills/example/SKILL.md": "foreign-repo",
 }
 
 # Text files under a skill folder whose slash and path references are linted.
@@ -127,14 +139,15 @@ SLASH_REF = re.compile(
 )
 
 # A repo-relative harness path token, backticked or bare: `.claude/...`,
-# `.repo-context/...` or the canonical skill tree `.agents/skills/...`, not
+# `.codex/...`, `.repo-context/...` or the canonical skill tree
+# `.agents/skills/...`, not
 # preceded by `/`, `~`, or a word char — so `~/.claude/...` (home dir) and
 # `<repo>/.claude/...` (another checkout) are out of scope. Captures
 # placeholder characters too, so a glob-ish token is recognised whole and
 # skipped rather than half-matched; `:NN` line suffixes and `#fragments` end
 # the token naturally. Trailing sentence periods are stripped afterwards.
 CLAUDE_PATH = re.compile(
-    r"(?<![\w/~])((?:\.claude|\.repo-context|\.agents)/[\w./\-<>*{}…]*)"
+    r"(?<![\w/~])((?:\.claude|\.codex|\.repo-context|\.agents)/[\w./\-<>*{}…]*)"
 )
 PLACEHOLDER_MARKS = ("<", ">", "*", "{", "}", "…", "...")
 # A token followed by this, after its closing backtick or quote, or by a
@@ -337,8 +350,8 @@ def slash_refs(path: Path) -> list[tuple[int, str]]:
 
 
 def claude_path_refs(path: Path) -> list[tuple[int, str]]:
-    """(line number, token) for every checkable `.claude/`, `.repo-context/` or
-    `.agents/` token in the file. Placeholder/glob tokens (`<name>`, `*`,
+    """(line number, token) for every checkable `.claude/`, `.codex/`,
+    `.repo-context/` or `.agents/` token in the file. Placeholder/glob tokens (`<name>`, `*`,
     `{a,b}`, `…`, `...`) are not checkable and a token followed by
     `(if present)` is conditional; both are omitted."""
     refs: list[tuple[int, str]] = []
@@ -827,6 +840,12 @@ class PointerCheck:
     used_paths: set[str] = field(default_factory=set)
 
     def tree_path(self, rel: str) -> tuple[bool, Replacement | None]:
+        if self.resolver.inventory is not None:
+            # An install holds only the skills tree: a path that normalizes
+            # out of it (`..`) names nothing there, whatever the disk holds.
+            rel = posixpath.normpath(rel or ".")
+            if rel == ".." or rel.startswith("../") or rel.startswith("/"):
+                return False, None
         swap = replacement_for(rel, self.swaps)
         if swap is not None:
             return swap.resolves(rel, self.skills_dir), swap
@@ -850,7 +869,18 @@ class PointerCheck:
         for prefix in SKILL_TREE_PREFIXES:
             if token.startswith(prefix):
                 return self.tree_path(token[len(prefix) :].rstrip("/"))
-        if self.resolver.exists(token):
+        look = token
+        if self.resolver.inventory is not None:
+            # Normalized before it is looked up; one leaving the repo names
+            # nothing an install holds, one landing in the skills tree is a
+            # skills-tree path.
+            look = posixpath.normpath(token)
+            if look == ".." or look.startswith("../"):
+                return False, None
+            for prefix in SKILL_TREE_PREFIXES:
+                if look.startswith(prefix):
+                    return self.tree_path(look[len(prefix) :])
+        if self.resolver.exists(look):
             return True, None
         if token in ALLOWED_PATHS:
             self.used_paths.add(token)

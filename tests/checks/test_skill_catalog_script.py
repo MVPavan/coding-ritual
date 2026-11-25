@@ -440,6 +440,28 @@ def test_inventory_directory_token_resolves(
     assert "dead path .repo-context/ " not in out
 
 
+@pytest.mark.parametrize(
+    "plant", [".agents/skills/../inventory.txt", ".codex/README.md"]
+)
+def test_inventory_rejects_pointers_the_install_lacks(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], plant: str
+) -> None:
+    """Both exist on disk beside the staged tree; neither is in the install:
+    a `..` out of the skills tree and a `.codex/` path the inventory lacks."""
+    _write(tmp_path / ".codex" / "README.md", "# Codex\n")
+    skills = _tree(tmp_path, ROUTER)
+    _cite(f"# Example\n\nSee `{plant}`, `.codex/hooks.json` and `.codex/skills/`.\n")(
+        skills
+    )
+    listing = _inventory(tmp_path, ".codex/hooks.json")
+    argv = ["--root", str(tmp_path), "--skills-dir", str(skills), "--inventory", listing]
+    code, out = _run(argv, capsys)
+    assert code == 1, out
+    assert f"dead path {plant}" in out
+    assert "dead path .codex/hooks.json" not in out
+    assert "dead path .codex/skills/" not in out
+
+
 # --- U8 review: staged install, Replaces targets, router-relative paths -----
 
 BASELINE = "0" * 64
