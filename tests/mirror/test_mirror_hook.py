@@ -2,7 +2,9 @@
 through both tools' real session-start launchers and their real config entries.
 
 Each test copies the hook files and the two tools' configs of the hook root into the
-temporary clone, then runs the session-start command exactly as the config names it.
+temporary clone, then runs the session-start command exactly as the config names it:
+only ``type: command`` hooks in a SessionStart group whose matcher selects the
+``startup`` source.
 The hook root is this repository, or the installed repository that
 ``BEAD_MIRROR_HOOK_ROOT`` names (a fixture the plugin's installer laid, checked by the
 plugin's ``test/acceptance.sh``). An installed root must hold every hook file but the
@@ -19,6 +21,7 @@ from __future__ import annotations
 import fcntl
 import json
 import os
+import re
 import shutil
 import signal
 import subprocess
@@ -83,12 +86,29 @@ def hooked(mirror: Mirror) -> Iterator[Mirror]:
     stop_background(mirror)
 
 
+def selects_startup(matcher: Any) -> bool:
+    """Whether a SessionStart group's matcher selects the ``startup`` source: absent,
+    empty or ``*``, or a regular expression matching all of ``startup``."""
+    if matcher is None or matcher in ("", "*"):
+        return True
+    if not isinstance(matcher, str):
+        return False
+    try:
+        return re.fullmatch(matcher, "startup") is not None
+    except re.error:
+        return False
+
+
 def session_commands(m: Mirror, tool: str, with_new: bool = True) -> list[str]:
+    """The ``command`` of every ``type: command`` hook a session ``startup`` runs: in
+    a SessionStart group whose matcher selects ``startup``."""
     config = json.loads((m.clone / CONFIG[tool]).read_text())
     commands = [
         hook["command"]
         for entry in config["hooks"]["SessionStart"]
+        if selects_startup(entry.get("matcher"))
         for hook in entry["hooks"]
+        if hook.get("type") == "command" and isinstance(hook.get("command"), str)
     ]
     return [c for c in commands if with_new or NEW_ENTRY not in c]
 

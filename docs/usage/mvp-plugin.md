@@ -225,8 +225,8 @@ A repo without `.github/workflows/bead-reference-check.yml` is not incomplete. I
   fails; a hook `command` with `/home/`, `/Users/` or `/data/codes` fails (other strings,
   such as permission rules, are not checked);
 - hook launchers: each stamped `.sh`/`.py` under `.claude/hooks` or `.codex/hooks` and each
-  hook script a settings command runs must be executable (other helper files are not
-  checked); an edited stamped launcher must still parse (`bash -n`, or a Python compile in
+  hook script a settings command runs must be executable, and one that does not exist fails
+  naming the command (other helper files are not checked); an edited stamped launcher must still parse (`bash -n`, or a Python compile in
   memory), else it fails, naming the parse error;
 - the wiring record: a malformed row, an unknown kind, an unsafe path or a settings file
   that is not valid JSON fails naming it; then its links, created files, `.gitignore` block
