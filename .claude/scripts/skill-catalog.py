@@ -44,6 +44,11 @@ audit — so this script generates the mechanical part and lints the rest.
       only when the corresponding file beneath the new one exists, and each
       `/old` call or old path in a repo-owned file (`repo-owned` in
       `.repo-context/harness-settings.txt`) is listed for local migration.
+  --contained
+      With --check: open nothing reached through a link below --root (a
+      doctor's read of a repo it does not trust): a linked skills directory is
+      refused, and each link inside it (file or folder) is a failure and is
+      neither read nor traversed; a linked harness-settings.txt is not read.
   --write
       Regenerate everything below the marker line and every skill's
       `agents/openai.yaml` policy block (an existing `interface:` block is
@@ -75,6 +80,7 @@ from __future__ import annotations
 
 import argparse
 import difflib
+import os
 import posixpath
 import re
 from dataclasses import dataclass, field
@@ -192,6 +198,54 @@ class Surface:
     )
 
 
+# --- Containment (--contained) ------------------------------------------------
+# The repo root under which no link is followed, or None (the default: read
+# whatever the paths name).
+_CONTAIN_ROOT: Path | None = None
+
+
+def contain(root: Path | None) -> None:
+    """Open nothing reached through a link below <root> from now on (None: off)."""
+    global _CONTAIN_ROOT
+    _CONTAIN_ROOT = root
+
+
+def linked_below(path: Path, root: Path) -> str | None:
+    """The first component of <path> below <root> that is a link (the leaf
+    too), relative to <root>; "" when <path> is not under <root>."""
+    try:
+        parts = path.relative_to(root).parts
+    except ValueError:
+        return ""
+    current = root
+    for part in parts:
+        current = current / part
+        if current.is_symlink():
+            return str(current.relative_to(root))
+    return None
+
+
+def readable(path: Path) -> bool:
+    """False when containment is on and <path> is reached through a link."""
+    return _CONTAIN_ROOT is None or linked_below(path, _CONTAIN_ROOT) is None
+
+
+def linked_failures(root: Path, skills_dir: Path) -> list[str]:
+    """With containment on, each link inside the skills directory, unread."""
+    if _CONTAIN_ROOT is None:
+        return []
+    found: list[str] = []
+    for top, dirs, files in os.walk(skills_dir, followlinks=False):
+        for name in sorted(dirs + files):
+            entry = Path(top) / name
+            if entry.is_symlink():
+                found.append(
+                    f"linked entry {_rel(entry, root)} -> {os.readlink(entry)}"
+                    " — not read (--contained follows no link)"
+                )
+    return sorted(found)
+
+
 # --- Parsing ------------------------------------------------------------------
 
 
@@ -242,6 +296,8 @@ def frontmatter_failures(root: Path, skills_dir: Path) -> list[str]:
         return [f"{need} — run this script with `uv run python`"]
     failures: list[str] = []
     for skill_md in sorted(skills_dir.glob("*/SKILL.md")):
+        if not readable(skill_md):
+            continue
         where = _rel(skill_md, root)
         fields, error = _yaml_frontmatter(skill_md.read_text(encoding="utf-8"))
         if fields is None:
@@ -263,6 +319,8 @@ def load_skills(skills_dir: Path) -> list[Surface]:
     key is flagged (warning) but never changes classification."""
     surfaces: list[Surface] = []
     for skill_md in sorted(skills_dir.glob("*/SKILL.md")):
+        if not readable(skill_md):
+            continue
         raw = skill_md.read_text(encoding="utf-8")
         fields = _yaml_frontmatter(raw)[0] or {}
         name = fields.get("name")
@@ -345,7 +403,9 @@ def shipped_text_files(surface: Surface) -> list[Path]:
     return sorted(
         candidate
         for candidate in surface.path.parent.rglob("*")
-        if candidate.is_file() and candidate.suffix in SHIPPED_TEXT_SUFFIXES
+        if candidate.is_file()
+        and candidate.suffix in SHIPPED_TEXT_SUFFIXES
+        and readable(candidate)
     )
 
 
@@ -419,7 +479,7 @@ def read_settings(root: Path) -> dict[str, list[str]]:
     `key<TAB>value`. Absent means empty."""
     path = root / SETTINGS_REL
     settings: dict[str, list[str]] = {}
-    if path.is_file():
+    if path.is_file() and readable(path):
         for line in path.read_text(encoding="utf-8").splitlines():
             key, sep, value = line.partition("\t")
             if sep and key.strip() and not key.startswith("#"):
@@ -728,7 +788,7 @@ def read_routes(
     replacements: list[Replacement] = []
     failures: list[str] = []
     path = skills_dir / ROUTES_REL
-    if not path.is_file():
+    if not path.is_file() or not readable(path):
         return entries, replacements, failures
     where = _rel(path, root)
     lines = masked_lines(path.read_text(encoding="utf-8"))
@@ -1042,7 +1102,9 @@ def catalog_failures(
     known = {s.name for s in skills}
     router = skills_dir / ROUTER_REL
     catalog = skills_dir / CATALOG_REL
-    if router.is_file():
+    if router.is_file() and not readable(router):
+        pass  # a link: reported by linked_failures, never read
+    elif router.is_file():
         router_text = router.read_text(encoding="utf-8")
         failures.extend(unresolved_names(router, router_text, known, root))
         failures.extend(
@@ -1050,7 +1112,9 @@ def catalog_failures(
         )
     else:
         failures.append(f"missing {_rel(router, root)}")
-    if not catalog.is_file():
+    if catalog.is_file() and not readable(catalog):
+        pass  # a link: reported by linked_failures, never read
+    elif not catalog.is_file():
         failures.append(
             f"missing {_rel(catalog, root)} — create it with the marker, then run --write"
         )
@@ -1082,14 +1146,15 @@ def cmd_check(
     inventory: frozenset[str] | None = None,
     pointers_only: bool = False,
 ) -> int:
+    linked = linked_failures(root, skills_dir)
     malformed = frontmatter_failures(root, skills_dir)
     if malformed:
         print(f"## skill-catalog check: {skills_dir}")
-        for failure in malformed:
+        for failure in linked + malformed:
             print(f"FAIL {failure}")
         return 1
     skills = load_skills(skills_dir)
-    failures: list[str] = []
+    failures: list[str] = list(linked)
     warnings: list[str] = []
     migrations: list[str] = []
     resolver = Resolver(root, skills_dir, inventory)
@@ -1241,9 +1306,24 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="check only slash, path and principle references and routes.md",
     )
+    parser.add_argument(
+        "--contained",
+        action="store_true",
+        help="open nothing reached through a link below --root: a linked skills directory"
+        " is refused, a link inside it is a failure and is not read",
+    )
     args = parser.parse_args(argv)
-    if args.write and (args.pointers_only or args.inventory):
-        parser.error("--pointers-only and --inventory apply to --check only")
+    if args.write and (args.pointers_only or args.inventory or args.contained):
+        parser.error("--pointers-only, --inventory and --contained apply to --check only")
+    if args.contained:
+        lexical = Path(os.path.abspath(args.root))
+        wanted = Path(os.path.abspath(args.skills_dir or lexical / ".agents" / "skills"))
+        link = linked_below(wanted, lexical)
+        if link is not None:
+            print(f"## skill-catalog check: {wanted}")
+            where = "is not under --root" if link == "" else f"is reached through the link {link}"
+            print(f"FAIL the skills directory {where} — not read (--contained)")
+            return 1
     root = args.root.resolve()
     skills_dir = (args.skills_dir or root / ".agents" / "skills").resolve()
     if not skills_dir.is_dir():
@@ -1253,6 +1333,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.write:
         return cmd_write(root, skills_dir)
     inventory = read_inventory(args.inventory) if args.inventory else None
+    if args.contained:
+        contain(root)
     return cmd_check(root, skills_dir, inventory, args.pointers_only)
 
 

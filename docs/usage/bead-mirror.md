@@ -115,8 +115,10 @@ does not take any of them on its own.
    branch; that commit marks the project as opted in for every clone. To find a drifted workflow
    later, re-run `install-check` without `--force`: it prints `unchanged:` when the file matches and
    refuses (exit 9) when it differs. In an adopted repository the plugin's `doctor` does this without
-   the authority checks: it compares the committed file with `bead-mirror.py print-check` (which reads
-   and writes nothing) and reports a failing, stale or held mirror from the local state.
+   the authority checks: it compares the committed file with the plugin's `bead-mirror.py print-check`
+   (which reads and writes nothing) when the installed command is byte-identical to the plugin's copy,
+   reports the comparison incomplete (exit 3) when it is not, and reports a failing, stale or held
+   mirror from the local state.
 7. **Set the protection and the Actions policy** (owner, in the repository settings). Allow Actions,
    with `pull_request_target` workflows running for the repository's pull requests, including pull
    requests from forks. Require approval before workflows run for outside contributors' pull

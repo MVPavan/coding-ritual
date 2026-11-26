@@ -187,21 +187,37 @@ skills and `scripts/` are edited in the plugin.
 
 ## 8. `doctor` checks
 
-`doctor.sh` (with `lib/doctor-check.py`) is read-only and exits 1 on any FAIL; in the
-workshop it refuses with exit 2. It checks:
+`doctor.sh` (with `lib/doctor-check.py`) is read-only: it runs none of the repo's code
+(every Python it starts has `PYTHONSAFEPATH=1` and writes no bytecode) and reads nothing
+through a link below the repo (each such path is a FAIL naming it). Exit codes:
 
-- every stamped file by hash: missing fails, edited is listed, a tombstoned unit is
+| Exit | Meaning |
+|---|---|
+| 0 | every check ran and none failed |
+| 1 | at least one FAIL |
+| 2 | refused: run in the workshop |
+| 3 | no FAIL, but a required check could not run: no PyYAML (skill pointers, `Replaces` lines), or a committed mirror workflow that cannot be compared; the closing `INCOMPLETE:` line names each |
+
+A repo without `.github/workflows/bead-reference-check.yml` is not incomplete. It checks:
+
+- the stamp: one with no entry fails; every stamped file by hash: missing fails, edited is listed, a tombstoned unit is
   reported retired; `.template-new` leftovers are listed;
 - a `repo-owned` unit that collides with a stamped one, and a Claude view that differs
   from `skill-layout.txt` (or dangles), fail;
-- each `Replaces` line in `routes.md`: a missing new unit fails; a stale mapping (old
+- each `Replaces` line in `routes.md`, as `skill-catalog.py` parses and resolves it
+  (fenced examples skipped; a skill named by declared name, folder or entry point): a
+  missing new unit fails; a stale mapping (old
   unit no longer stamped) and drift (the old unit's stamp digest differs from the
   baseline) are reported;
-- `skill-catalog.py --pointers-only` on `.agents/skills`, naming each broken caller
-  `file:line` (needs PyYAML, else it says the check did not run);
-- the wiring record's links, created files, `.gitignore` block and settings entries;
-- the bead mirror: a committed `.github/workflows/bead-reference-check.yml` against
-  `bead-mirror.py print-check`, and a failing, stale or held mirror from its local
+- `skill-catalog.py --pointers-only --contained` on `.agents/skills`, naming each broken
+  caller `file:line` and each link inside the tree, unread (needs PyYAML, else
+  incomplete);
+- the wiring record: a malformed row, an unknown kind or an unsafe path fails naming its
+  line; then its links, created files, `.gitignore` block and settings entries;
+- the bead mirror: a committed `.github/workflows/bead-reference-check.yml` against the
+  plugin's `bead-mirror.py print-check`, only when the installed
+  `.claude/hooks/bead-mirror.py` is byte-identical to the plugin's (otherwise incomplete:
+  run `install-check` from the installed command to compare), and a failing, stale or held mirror from its local
   state in the git common dir (no network);
 - DUPLICATE: a skill-bearing plugin (< 0.3.0) enabled on a tool, or a `~/.claude/skills`
   name shadowing a repo skill (this machine only);
