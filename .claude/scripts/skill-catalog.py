@@ -202,12 +202,18 @@ class Surface:
 # The repo root under which no link is followed, or None (the default: read
 # whatever the paths name).
 _CONTAIN_ROOT: Path | None = None
+# Repo-owned units (paths relative to <root>/.agents/skills) whose links may
+# be read when their real target stays inside <root>.
+_CONTAIN_OWNED: tuple[str, ...] = ()
 
 
-def contain(root: Path | None) -> None:
-    """Open nothing reached through a link below <root> from now on (None: off)."""
-    global _CONTAIN_ROOT
+def contain(root: Path | None, owned: list[str] | tuple[str, ...] = ()) -> None:
+    """Open nothing reached through a link below <root> from now on (None: off),
+    except a link inside a repo-owned unit of <owned> whose real target is
+    inside <root>."""
+    global _CONTAIN_ROOT, _CONTAIN_OWNED
     _CONTAIN_ROOT = root
+    _CONTAIN_OWNED = tuple(o.strip("/") for o in owned if o.strip("/"))
 
 
 def linked_below(path: Path, root: Path) -> str | None:
@@ -226,8 +232,23 @@ def linked_below(path: Path, root: Path) -> str | None:
 
 
 def readable(path: Path) -> bool:
-    """False when containment is on and <path> is reached through a link."""
-    return _CONTAIN_ROOT is None or linked_below(path, _CONTAIN_ROOT) is None
+    """False when containment is on and <path> is reached through a link,
+    unless the link lies in a repo-owned unit and <path> really is in the repo."""
+    if _CONTAIN_ROOT is None:
+        return True
+    link = linked_below(path, _CONTAIN_ROOT)
+    if link is None:
+        return True
+    if not link:
+        return False
+    try:
+        rel = (_CONTAIN_ROOT / link).relative_to(_CONTAIN_ROOT / ".agents" / "skills").as_posix()
+    except ValueError:
+        return False
+    if not any(rel == o or rel.startswith(o + "/") for o in _CONTAIN_OWNED):
+        return False
+    real, top = os.path.realpath(path), os.path.realpath(_CONTAIN_ROOT)
+    return real.startswith(top + os.sep)
 
 
 def linked_failures(root: Path, skills_dir: Path) -> list[str]:
@@ -238,7 +259,7 @@ def linked_failures(root: Path, skills_dir: Path) -> list[str]:
     for top, dirs, files in os.walk(skills_dir, followlinks=False):
         for name in sorted(dirs + files):
             entry = Path(top) / name
-            if entry.is_symlink():
+            if entry.is_symlink() and not readable(entry):
                 found.append(
                     f"linked entry {_rel(entry, root)} -> {os.readlink(entry)}"
                     " — not read (--contained follows no link)"
@@ -1335,6 +1356,7 @@ def main(argv: list[str] | None = None) -> int:
     inventory = read_inventory(args.inventory) if args.inventory else None
     if args.contained:
         contain(root)
+        contain(root, read_settings(root).get("repo-owned", []))
     return cmd_check(root, skills_dir, inventory, args.pointers_only)
 
 

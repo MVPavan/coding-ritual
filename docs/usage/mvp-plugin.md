@@ -199,35 +199,51 @@ an unreadable workshop marker). Exit codes:
 | 0 | every check ran and none failed |
 | 1 | at least one FAIL |
 | 2 | refused: run in the workshop |
-| 3 | no FAIL, but a required check could not run: no PyYAML (skill pointers, `Replaces` lines), a committed mirror workflow that cannot be compared, or a missing wiring record (beside a stamp) or a settings file it names that cannot be read; the closing `INCOMPLETE:` line names each |
+| 3 | no FAIL, but a required check could not run: no PyYAML (skill pointers, `Replaces` lines), a committed mirror workflow that cannot be compared, a missing wiring record (beside a stamp), or a stamped file, hook settings file or launcher that cannot be read or inspected; the closing `INCOMPLETE:` line names each |
 
 A repo without `.github/workflows/bead-reference-check.yml` is not incomplete. It checks:
 
 - the stamp: a row without a relative path and a 64-hex digest fails naming its line, and
   one with no valid row fails; every stamped file by hash: missing fails, edited is listed, a tombstoned unit is
-  reported retired; `.template-new` leftovers are listed;
-- a `repo-owned` unit that collides with a stamped one, and a Claude view that differs
-  from `skill-layout.txt` (or dangles), fail;
+  reported retired; every `.template-new` under `.agents`, `.claude`, `.codex` (and beside the
+  root `AGENTS.md`/`CLAUDE.md`) is listed once, also after a release retired its entry; a
+  linked `.harness-retired.txt` fails, unread;
+- a `repo-owned` unit that collides with a stamped one, an unstamped skill that declares a
+  stamped skill's `name:`, and a Claude view that differs from `skill-layout.txt` (or
+  dangles), fail; a linked `.repo-context/harness-settings.txt` fails, unread, and no
+  collision PASS is given;
 - each `Replaces` line in `routes.md`, as `skill-catalog.py` parses and resolves it
   (fenced examples skipped; a skill named by declared name, folder or entry point): a
   missing new unit fails; a stale mapping (old
   unit no longer stamped) and drift (the old unit's stamp digest differs from the
   baseline) are reported;
 - `skill-catalog.py --pointers-only --contained` on `.agents/skills`, naming each broken
-  caller `file:line` and each link inside the tree, unread (needs PyYAML, else
-  incomplete);
+  caller `file:line` and each link inside the tree, unread, except a link inside a
+  repo-owned skill whose real target stays in the repo (needs PyYAML, else incomplete);
+- `.claude/settings.json` and `.codex/hooks.json`, loaded strictly on every run: invalid
+  JSON (a duplicate member, `NaN`), a non-object, or a `hooks` value that is not an object
+  fails; a hook `command` with `/home/`, `/Users/` or `/data/codes` fails (other strings,
+  such as permission rules, are not checked);
+- hook launchers: each stamped `.sh`/`.py` under `.claude/hooks` or `.codex/hooks` and each
+  hook script a settings command runs must be executable (other helper files are not
+  checked); an edited stamped launcher must still parse (`bash -n`, or a Python compile in
+  memory), else it fails, naming the parse error;
 - the wiring record: a malformed row, an unknown kind, an unsafe path or a settings file
-  that is not valid JSON fails naming it; then its links, created files, `.gitignore` block and settings entries;
+  that is not valid JSON fails naming it; then its links, created files, `.gitignore` block
+  (rules a repo appends right after the block are not part of it) and settings entries;
 - the bead mirror: a committed `.github/workflows/bead-reference-check.yml` against the
   plugin's `bead-mirror.py print-check`, only when the installed
   `.claude/hooks/bead-mirror.py` is byte-identical to the plugin's (otherwise incomplete:
-  run `install-check` from the installed command to compare), and a failing, stale or held mirror from its local
+  run `install-check` from the installed command to compare; a linked `.github` fails), and a failing, stale or held mirror from its local
   state in the git common dir (no network; a link at `bead-mirror/` or at a state file in
-  it is a FAIL, not read);
+  it is a FAIL, not read): only `outcome: done` is a finished run, a reservation with no
+  outcome is reported in progress (a WARN after a day), an unreadable `background.json` warns;
 - DUPLICATE: a skill-bearing plugin (< 0.3.0) enabled on a tool, or a `~/.claude/skills`
   name shadowing a repo skill (this machine only);
-- hooks executable, `settings.json` portable, Codex hook trust, beads, the overlay
-  filled, and whether an update is available.
+- Codex hook trust: only `hooks.state` entries for the identities `.codex/hooks.json` holds
+  now count (an approval of a removed hook does not); the trusted hashes are not verified;
+- beads (an empty `sync.remote:` counts as not set), the overlay filled, and whether an
+  update is available.
 
 ## 9. Release notes
 
