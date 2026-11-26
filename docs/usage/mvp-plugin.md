@@ -188,19 +188,23 @@ skills and `scripts/` are edited in the plugin.
 ## 8. `doctor` checks
 
 `doctor.sh` (with `lib/doctor-check.py`) is read-only: it runs none of the repo's code
-(every Python it starts has `PYTHONSAFEPATH=1` and writes no bytecode) and reads nothing
-through a link below the repo (each such path is a FAIL naming it). Exit codes:
+(every Python it starts runs with `-E -P -B`, ignoring the caller's `PYTHON*` variables
+such as `PYTHONPATH`, or `-I -B` on Python older than 3.11, and writes no bytecode) and
+reads nothing through a link below the repo (each such path is a FAIL naming it; a
+linked `.gitmodules` is a FAIL too, and adopt, update, fork and `--remove` refuse it as
+an unreadable workshop marker). Exit codes:
 
 | Exit | Meaning |
 |---|---|
 | 0 | every check ran and none failed |
 | 1 | at least one FAIL |
 | 2 | refused: run in the workshop |
-| 3 | no FAIL, but a required check could not run: no PyYAML (skill pointers, `Replaces` lines), or a committed mirror workflow that cannot be compared; the closing `INCOMPLETE:` line names each |
+| 3 | no FAIL, but a required check could not run: no PyYAML (skill pointers, `Replaces` lines), a committed mirror workflow that cannot be compared, or a missing wiring record (beside a stamp) or a settings file it names that cannot be read; the closing `INCOMPLETE:` line names each |
 
 A repo without `.github/workflows/bead-reference-check.yml` is not incomplete. It checks:
 
-- the stamp: one with no entry fails; every stamped file by hash: missing fails, edited is listed, a tombstoned unit is
+- the stamp: a row without a relative path and a 64-hex digest fails naming its line, and
+  one with no valid row fails; every stamped file by hash: missing fails, edited is listed, a tombstoned unit is
   reported retired; `.template-new` leftovers are listed;
 - a `repo-owned` unit that collides with a stamped one, and a Claude view that differs
   from `skill-layout.txt` (or dangles), fail;
@@ -212,13 +216,14 @@ A repo without `.github/workflows/bead-reference-check.yml` is not incomplete. I
 - `skill-catalog.py --pointers-only --contained` on `.agents/skills`, naming each broken
   caller `file:line` and each link inside the tree, unread (needs PyYAML, else
   incomplete);
-- the wiring record: a malformed row, an unknown kind or an unsafe path fails naming its
-  line; then its links, created files, `.gitignore` block and settings entries;
+- the wiring record: a malformed row, an unknown kind, an unsafe path or a settings file
+  that is not valid JSON fails naming it; then its links, created files, `.gitignore` block and settings entries;
 - the bead mirror: a committed `.github/workflows/bead-reference-check.yml` against the
   plugin's `bead-mirror.py print-check`, only when the installed
   `.claude/hooks/bead-mirror.py` is byte-identical to the plugin's (otherwise incomplete:
   run `install-check` from the installed command to compare), and a failing, stale or held mirror from its local
-  state in the git common dir (no network);
+  state in the git common dir (no network; a link at `bead-mirror/` or at a state file in
+  it is a FAIL, not read);
 - DUPLICATE: a skill-bearing plugin (< 0.3.0) enabled on a tool, or a `~/.claude/skills`
   name shadowing a repo skill (this machine only);
 - hooks executable, `settings.json` portable, Codex hook trust, beads, the overlay
