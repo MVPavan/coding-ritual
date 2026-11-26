@@ -12,6 +12,7 @@ import importlib.util
 import json
 import re
 import subprocess
+import sys
 from pathlib import Path
 from types import ModuleType
 from typing import Any
@@ -317,6 +318,43 @@ def test_install_check_writes_once_refuses_a_differing_file_and_force_replaces(
     assert mirror.fake.writes() == []
     assert not [c for c in mirror.bd_calls() if c.startswith("update")]
     assert mirror.mirror_files() == ["switch.json"]
+
+
+def test_print_check_prints_the_workflow_install_check_writes_and_touches_nothing(
+    mirror: Mirror,
+) -> None:
+    """The plugin doctor's read: with a switch present, ``print-check`` prints the
+    workflow text and makes no gh or bd call, writes no mirror file and no workflow."""
+    mirror.write_switch()
+    before = mirror.mirror_files()
+    result = mirror.run("print-check")
+    assert (result.returncode, result.stderr) == (0, "")
+    assert result.stdout == command_module().workflow_text()
+    assert mirror.fake.calls() == [] and mirror.bd_calls() == []
+    assert mirror.mirror_files() == before
+    assert not (mirror.clone / ".github").exists()
+    assert mirror.run("install-check").returncode == 0
+    assert (mirror.clone / WORKFLOW).read_text(encoding="utf-8") == result.stdout
+
+
+def test_print_check_needs_no_switch_repository_or_tool(tmp_path: Path) -> None:
+    """Outside any repository, with an empty PATH (no git, bd or gh to find), it still
+    prints the text and leaves the directory as it was."""
+    empty = tmp_path / "bin"
+    empty.mkdir()
+    result = subprocess.run(
+        [sys.executable, "-I", "-B", str(COMMAND), "print-check"],
+        cwd=tmp_path,
+        env={"PATH": str(empty)},
+        capture_output=True,
+        text=True,
+        stdin=subprocess.DEVNULL,
+        timeout=60,
+        check=False,
+    )
+    assert (result.returncode, result.stderr) == (0, "")
+    assert result.stdout == command_module().workflow_text()
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["bin"]
 
 
 def test_install_check_with_an_authority_mismatch_writes_no_workflow(

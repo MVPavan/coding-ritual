@@ -59,7 +59,10 @@ concurrency group per pull request and no checkout; it reads the current body th
 the API and runs the same pattern and function, rendered from this file. Exempt
 authors come from the repository variable ``BEAD_REF_EXEMPT`` (comma-separated
 logins). The workflow names no repository: it takes the host and repository from the
-runner.
+runner. ``print-check`` prints that workflow text to stdout and nothing else: it runs
+before the switch is read, with or without one, and makes no git, bd or gh call, takes
+no lock and writes nothing, so the plugin's ``doctor`` can compare a committed workflow
+with this command's copy.
 
 The banner. Every issue body starts with two lines::
 
@@ -5067,6 +5070,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--force", action="store_true", help="replace a differing workflow file"
     )
     sub.add_parser(
+        "print-check",
+        help="print the check's workflow text; reads and writes nothing (no switch needed)",
+    )
+    sub.add_parser(
         "session", help="the session-start hook: digest summary, background run"
     )
     sub.add_parser("supervise", help="the background run's supervisor (detached)")
@@ -5081,6 +5088,9 @@ def fail(code: int, message: str) -> NoReturn:
 
 def main(argv: Sequence[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv == ["print-check"]:  # read-only: before git, the switch and any state
+        sys.stdout.write(workflow_text())
+        return EXIT_OK
     session = argv[-1:] == ["session"]
     if session:  # a short deadline of its own, whatever the launcher's timeout
         signal.signal(signal.SIGALRM, session_deadline_passed)

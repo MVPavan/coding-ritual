@@ -37,8 +37,8 @@ plugin `doctor` check the spec describes, wait for the end-of-project sync (`cr-
   reference check is an inline step. The command holds the workflow text, writes it with
   `install-check`, and keeps the inline step's grammar in the same source as the digest's parser.
   The tests run both against the one fixture table.
-- **The plugin `doctor` check** goes with the `cr-e0a` sync, as plugin work. When the roadmap is
-  seeded, a note on `cr-e0a` will record it.
+- **The plugin `doctor` check** goes with the `cr-e0a` sync, as plugin work. Built there (U14): the
+  doctor compares the committed workflow with `bead-mirror.py print-check` and reads the local state.
 - **"Not opted in" after `adopt` and `update`** is checked in this repository in M3 (no switch and no
   workflow means a silent session start and no mirror files). The `adopt`/`update` run itself
   happens at the `cr-e0a` sync.

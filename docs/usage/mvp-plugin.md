@@ -187,9 +187,26 @@ skills and `scripts/` are edited in the plugin.
 
 ## 8. `doctor` checks
 
-`doctor.sh` still checks the pre-model-B layout (`.claude/rules`, `.claude/project`,
-the `.codex` links); its model-B rewrite is pending, so on a freshly adopted repo it
-reports those as missing.
+`doctor.sh` (with `lib/doctor-check.py`) is read-only and exits 1 on any FAIL; in the
+workshop it refuses with exit 2. It checks:
+
+- every stamped file by hash: missing fails, edited is listed, a tombstoned unit is
+  reported retired; `.template-new` leftovers are listed;
+- a `repo-owned` unit that collides with a stamped one, and a Claude view that differs
+  from `skill-layout.txt` (or dangles), fail;
+- each `Replaces` line in `routes.md`: a missing new unit fails; a stale mapping (old
+  unit no longer stamped) and drift (the old unit's stamp digest differs from the
+  baseline) are reported;
+- `skill-catalog.py --pointers-only` on `.agents/skills`, naming each broken caller
+  `file:line` (needs PyYAML, else it says the check did not run);
+- the wiring record's links, created files, `.gitignore` block and settings entries;
+- the bead mirror: a committed `.github/workflows/bead-reference-check.yml` against
+  `bead-mirror.py print-check`, and a failing, stale or held mirror from its local
+  state in the git common dir (no network);
+- DUPLICATE: a skill-bearing plugin (< 0.3.0) enabled on a tool, or a `~/.claude/skills`
+  name shadowing a repo skill (this machine only);
+- hooks executable, `settings.json` portable, Codex hook trust, beads, the overlay
+  filled, and whether an update is available.
 
 ## 9. Release notes
 
