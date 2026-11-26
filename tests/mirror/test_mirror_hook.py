@@ -1,8 +1,15 @@
 """Spec criteria Hook, Lock (background half), Failures (hook) and Digest safety (cap),
 through both tools' real session-start launchers and their real config entries.
 
-Each test copies this repository's hook files and the two tools' configs into the
+Each test copies the hook files and the two tools' configs of the hook root into the
 temporary clone, then runs the session-start command exactly as the config names it.
+The hook root is this repository, or the installed repository that
+``BEAD_MIRROR_HOOK_ROOT`` names (a fixture the plugin's installer laid, checked by the
+plugin's ``test/acceptance.sh``). An installed root must hold every hook file but the
+workshop-only ``harness-staleness-nudge.sh``. The not-opted-in test also proves each
+configured launcher really ran the command: a ``python3`` shim first on the hook
+``PATH`` records every call's argv and exit status. Not covered here: the mirror's
+``pr`` and ``tracker`` entry points (a stated limit).
 The background run is detached from the launcher, so a test follows it through
 ``background.json`` and the clone-wide lock, never by waiting on a child.
 """
@@ -40,18 +47,35 @@ HOOK_FILES = (
     ".claude/settings.json",
     ".codex/hooks.json",
 )
+# The hook root: this repository, or an installed one (see the module docstring).
+HOOK_ROOT = Path(os.environ.get("BEAD_MIRROR_HOOK_ROOT") or REPO_ROOT).resolve()
+INSTALLED = HOOK_ROOT != REPO_ROOT.resolve()
+# The only hook file an installed root may lack: it is never shipped.
+WORKSHOP_ONLY = {".claude/hooks/harness-staleness-nudge.sh"}
+MIRROR_COMMAND = ".claude/hooks/bead-mirror.py"
 SESSION_CAP = 2000  # the command's cap on the session-start summary
 NEW_ENTRY = "bead-mirror-session.sh"
 DEADLINES = "BEAD_MIRROR_TEST_DEADLINES"
 
 
+def copy_hook_files(dest: Path) -> None:
+    """Lay the hook root's hook files and configs into ``dest``. An installed root
+    must hold all of them except the workshop-only ones."""
+    missing = [rel for rel in HOOK_FILES if not (HOOK_ROOT / rel).is_file()]
+    allowed = WORKSHOP_ONLY if INSTALLED else set()
+    assert set(missing) <= allowed, f"{HOOK_ROOT} lacks hook files: {missing}"
+    for rel in HOOK_FILES:
+        if rel in missing:
+            continue
+        target = dest / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(HOOK_ROOT / rel, target)
+
+
 @pytest.fixture
 def hooked(mirror: Mirror) -> Iterator[Mirror]:
     """The clone with the real hook files and configs, and the tools a hook runs."""
-    for rel in HOOK_FILES:
-        target = mirror.clone / rel
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(REPO_ROOT / rel, target)
+    copy_hook_files(mirror.clone)
     for name in ("bash", "env", "dirname", "timeout", "find", "head"):
         (mirror.tools_dir / name).symlink_to(real_tool(name))
     (mirror.tools_dir / "python3").symlink_to(sys.executable)
@@ -100,6 +124,34 @@ def start_session(
 ) -> tuple[subprocess.CompletedProcess[str], float]:
     (command,) = [c for c in session_commands(m, tool) if NEW_ENTRY in c]
     return run_hook(m, command, env_extra, gh_on_path)
+
+
+def python_shim(m: Mirror, log: Path) -> dict[str, str]:
+    """A ``python3`` first on the hook ``PATH`` that runs the real interpreter and
+    appends ``{"argv": [...], "exit": n}`` to ``log`` per call; the env to run with."""
+    shim_dir = m.clone.parent / "python-shim"
+    shim_dir.mkdir(exist_ok=True)
+    shim = shim_dir / "python3"
+    record = (
+        "import json,sys; open(sys.argv[1],'a').write("
+        "json.dumps({'argv': sys.argv[3:], 'exit': int(sys.argv[2])}) + '\\n')"
+    )
+    shim.write_text(
+        "#!/bin/sh\n"
+        f'"{sys.executable}" "$@"\n'
+        "rc=$?\n"
+        f'"{sys.executable}" -c "{record}" "{log}" "$rc" "$@"\n'
+        'exit "$rc"\n'
+    )
+    shim.chmod(0o755)
+    path = m.env()["PATH"]
+    return {"PATH": os.pathsep.join([str(shim_dir), path])}
+
+
+def python_calls(log: Path) -> list[dict[str, Any]]:
+    if not log.exists():
+        return []
+    return [json.loads(line) for line in log.read_text().splitlines() if line]
 
 
 def background(m: Mirror) -> dict[str, Any]:
@@ -206,8 +258,20 @@ def pids_in_order(m: Mirror) -> list[int]:
 def test_not_opted_in_session_start_unchanged_and_creates_nothing(
     hooked: Mirror, tool: str
 ) -> None:
-    """No switch: the new entry prints nothing, creates no mirror file, calls neither
-    gh nor bd, and the other entries' output (the Beads context) is byte-identical."""
+    """No switch: the new entry runs ``bead-mirror.py session`` (seen through the
+    ``python3`` shim) and prints nothing, creates no mirror file, calls neither gh nor
+    bd, and the other entries' output (the Beads context) is byte-identical."""
+    log = hooked.clone.parent / "python-calls.jsonl"
+    shim_env = python_shim(hooked, log)
+    (launcher,) = [c for c in session_commands(hooked, tool) if NEW_ENTRY in c]
+    proc, _ = run_hook(hooked, launcher, shim_env)
+    want = [str(hooked.clone / MIRROR_COMMAND), "session"]
+    assert python_calls(log) == [{"argv": want, "exit": 0}], (
+        f"the {tool} launcher must run exactly `{MIRROR_COMMAND} session`, exit 0"
+    )
+    assert (proc.returncode, proc.stdout, proc.stderr) == (0, "", "")
+    assert not hooked.mirror_dir.exists()
+
     without = [run_hook(hooked, c)[0] for c in session_commands(hooked, tool, False)]
     calls_before = len(hooked.bd_calls())
     with_new = [run_hook(hooked, c)[0] for c in session_commands(hooked, tool)]
@@ -515,9 +579,7 @@ def test_where_it_runs_the_session_checkout_not_the_one_git_selectors_name(
     subprocess.run(
         [real_tool("git"), "init", "-q"], cwd=here, env=hooked.env(), check=True
     )
-    for rel in HOOK_FILES:
-        (here / rel).parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(REPO_ROOT / rel, here / rel)
+    copy_hook_files(here)
     (command,) = [c for c in session_commands(hooked, tool) if NEW_ENTRY in c]
     selectors = {
         "GIT_DIR": str(hooked.clone / ".git"),
